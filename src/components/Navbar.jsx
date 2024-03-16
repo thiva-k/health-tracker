@@ -15,7 +15,8 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
-import AdbIcon from '@mui/icons-material/Adb';
+import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
+import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import { useNavigate } from "react-router-dom";
 
 const pages = [
@@ -75,7 +76,8 @@ export function Navbar() {
     <AppBar position="static">
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
+          <HealthAndSafetyIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
+          <MonitorHeartIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
           <Typography
             variant="h6"
             noWrap
@@ -91,7 +93,7 @@ export function Navbar() {
               textDecoration: 'none',
             }}
           >
-            LOGO
+            HEALTH TRACKER
           </Typography>
 
           {currentUser ? (
@@ -134,12 +136,9 @@ export function Navbar() {
           ) : null}
 
           {currentUser ? (
-            <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
-          ) : null}
-
-          {currentUser ? (
+            
             <Typography
-              variant="h5"
+              variant="h6"
               noWrap
               component="a"
               href="#app-bar-with-responsive-menu"
@@ -148,14 +147,15 @@ export function Navbar() {
                 display: { xs: 'flex', md: 'none' },
                 flexGrow: 1,
                 fontFamily: 'monospace',
-                fontWeight: 700,
+                fontWeight: 500,
                 letterSpacing: '.3rem',
                 color: 'inherit',
                 textDecoration: 'none',
               }}
             >
-              LOGO
+              🛡️ HEALTH 📈
             </Typography>
+            
           ) : null}
 
           {currentUser ? (
