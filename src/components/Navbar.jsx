@@ -18,19 +18,40 @@ import MenuItem from '@mui/material/MenuItem';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import { useNavigate } from "react-router-dom";
+import { doc, getDoc, setDoc, addDoc, collection } from "firebase/firestore";
 
 const pages = [
   { name: 'Home', path: '/' },
   { name: 'Dashboard', path: '/dashboard' },
   {name: 'About', path:'/about'}
 ];
+
+const doctorPages = [{ name: 'Home', path: '/' }, { name: 'Patients', path: '/patients' }];
 const settings = ['Profile', 'Logout'];
 
 export function Navbar() {
   const { currentUser } = React.useContext(AuthContext);
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
+  const [userRole, setUserRole] = React.useState(null); // State to store user's role
+  const [loading, setLoading] = React.useState(true); // State to track loading
   const navigate = useNavigate();
+
+  // Function to fetch user's role from Firestore
+  const fetchUserRole = async () => {
+    if (currentUser) {
+      const userRef = doc(db, "users", currentUser.uid);
+      const docSnap = await getDoc(userRef);
+      if (docSnap.exists()) {
+        setUserRole(docSnap.data().role); // Set user's role in state
+        setLoading(false); 
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    fetchUserRole(); // Fetch user's role when component mounts or currentUser changes
+  }, [currentUser]);
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -52,11 +73,15 @@ export function Navbar() {
     signInWithPopup(auth, provider)
       .then(async (result) => {
         const user = result.user;
-        if (user) {
-          await setDoc(doc(db, "webCustomers", user.uid), {
+        const userRef = doc(db, "users", user.uid);
+        
+        // Check if the document already exists
+        const docSnap = await getDoc(userRef);
+        if (!docSnap.exists()) {
+          // Add user to Firestore only if the document doesn't exist
+          await setDoc(userRef, {
             uid: user.uid,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
+            role: "patient" // Set default role for new users
           });
         }
       })
@@ -71,6 +96,10 @@ export function Navbar() {
     await auth.signOut();
     navigate("/"); // Navigate to home after logout
   };
+
+  if (loading) {
+    return null;
+  }
 
   return (
     <AppBar position="static">
@@ -126,11 +155,20 @@ export function Navbar() {
                   display: { xs: 'block', md: 'none' },
                 }}
               >
-                {pages.map((page) => (
-                  <MenuItem key={page.name} onClick={() => { handleCloseNavMenu(); navigate(page.path) }}>
-                    <Typography textAlign="center">{page.name}</Typography>
-                  </MenuItem>
-                ))}
+                {/* Render doctorPages if user is doctor, otherwise render pages */}
+                {userRole === "doctor" ? (
+                  doctorPages.map((page) => (
+                    <MenuItem key={page.name} onClick={() => { handleCloseNavMenu(); navigate(page.path) }}>
+                      <Typography textAlign="center">{page.name}</Typography>
+                    </MenuItem>
+                  ))
+                ) : (
+                  pages.map((page) => (
+                    <MenuItem key={page.name} onClick={() => { handleCloseNavMenu(); navigate(page.path) }}>
+                      <Typography textAlign="center">{page.name}</Typography>
+                    </MenuItem>
+                  ))
+                )}
               </Menu>
             </Box>
           ) : null}
@@ -160,15 +198,28 @@ export function Navbar() {
 
           {currentUser ? (
             <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-              {pages.map((page) => (
-                <Button
-                  key={page.name}
-                  onClick={() => navigate(page.path)}
-                  sx={{ my: 2, color: 'white', display: 'block' }}
-                >
-                  {page.name}
-                </Button>
-              ))}
+              {/* Render doctorPages if user is doctor, otherwise render pages */}
+              {userRole === "doctor" ? (
+                doctorPages.map((page) => (
+                  <Button
+                    key={page.name}
+                    onClick={() => navigate(page.path)}
+                    sx={{ my: 2, color: 'white', display: 'block' }}
+                  >
+                    {page.name}
+                  </Button>
+                ))
+              ) : (
+                pages.map((page) => (
+                  <Button
+                    key={page.name}
+                    onClick={() => navigate(page.path)}
+                    sx={{ my: 2, color: 'white', display: 'block' }}
+                  >
+                    {page.name}
+                  </Button>
+                ))
+              )}
             </Box>
           ) : null}
 
@@ -182,7 +233,8 @@ export function Navbar() {
             <Box sx={{ flexGrow: 0 }}>
               <Tooltip title="Open settings">
                 <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                  <Avatar alt="Remy Sharp" src={currentUser?.photoURL} />
+                  <Avatar  src={currentUser?.photoURL} />
+                  {console.log(currentUser?.photoURL)}
                 </IconButton>
               </Tooltip>
               <Menu
@@ -223,3 +275,4 @@ export function Navbar() {
     </AppBar>
   );
 }
+
