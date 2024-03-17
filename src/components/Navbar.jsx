@@ -19,6 +19,8 @@ import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import { useNavigate } from "react-router-dom";
 import { doc, getDoc, setDoc, addDoc, collection } from "firebase/firestore";
+import { useUserRole } from '../context/UserRoleContext';
+
 
 const pages = [
   { name: 'Home', path: '/' },
@@ -31,27 +33,13 @@ const settings = ['Profile', 'Logout'];
 
 export function Navbar() {
   const { currentUser } = React.useContext(AuthContext);
+  const userRole = useUserRole();
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
-  const [userRole, setUserRole] = React.useState(null); // State to store user's role
-  const [loading, setLoading] = React.useState(true); // State to track loading
+  const [loading, setLoading] = React.useState(false); // State to track loading
   const navigate = useNavigate();
 
-  // Function to fetch user's role from Firestore
-  const fetchUserRole = async () => {
-    if (currentUser) {
-      const userRef = doc(db, "users", currentUser.uid);
-      const docSnap = await getDoc(userRef);
-      if (docSnap.exists()) {
-        setUserRole(docSnap.data().role); // Set user's role in state
-        setLoading(false); 
-      }
-    }
-  };
 
-  React.useEffect(() => {
-    fetchUserRole(); // Fetch user's role when component mounts or currentUser changes
-  }, [currentUser]);
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);

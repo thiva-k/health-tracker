@@ -5,10 +5,12 @@ import Dashboard from './components/Dashboard';
 import Patients from './components/Patients';
 import {Navbar} from './components/Navbar';
 import { AuthContextProvider } from "./context/AuthContext";
+import { UserRoleProvider } from './context/UserRoleContext';
 
 function App() {
   return (
   <AuthContextProvider>
+    <UserRoleProvider>
     <Router>
       <Navbar />
       <Routes>
@@ -17,6 +19,7 @@ function App() {
       <Route exact path="/patients" element = <Patients /> />
       </Routes>
   </Router>
+  </UserRoleProvider>
 </AuthContextProvider>
  );
 }

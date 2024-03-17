@@ -2,31 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { AuthContext } from "../context/AuthContext";
 import { db, auth } from "../config/firebase";
 import { doc, getDoc } from "firebase/firestore";
+import { useUserRole } from '../context/UserRoleContext';
 
 function Patients() {
-  const { currentUser } = React.useContext(AuthContext);
-  const [userRole, setUserRole] = useState(null);
-  const [loading, setLoading] = React.useState(true);
 
-  useEffect(() => {
-    const fetchUserRole = async () => {
-      if (currentUser) {
-        const userRef = doc(db, "users", currentUser.uid);
-        const docSnap = await getDoc(userRef);
-        if (docSnap.exists()) {
-          setUserRole(docSnap.data().role);
-        }
-        setLoading(false);
-      }
-    };
 
-    fetchUserRole();
-    
-  }, [currentUser]);
-
-  if (loading) {
-    return null;
-  }
+  const userRole = useUserRole();
 
   return (
     <div>
