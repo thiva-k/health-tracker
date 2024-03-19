@@ -18,14 +18,15 @@ import MenuItem from '@mui/material/MenuItem';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import { useNavigate } from "react-router-dom";
-import { doc, getDoc, setDoc, addDoc, collection } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { useUserRole } from '../context/UserRoleContext';
 
 
 const pages = [
   { name: 'Home', path: '/' },
-  { name: 'Dashboard', path: '/dashboard' },
-  {name: 'About', path:'/about'}
+  { name: 'Book Appointment', path: '/appointment' },
+  {name: 'About', path:'/about'},
+  {name: 'Health Diary', path:'/diary'}
 ];
 
 const doctorPages = [{ name: 'Home', path: '/' }, { name: 'Patients', path: '/patients' }];
@@ -33,10 +34,9 @@ const settings = ['Profile', 'Logout'];
 
 export function Navbar() {
   const { currentUser } = React.useContext(AuthContext);
-  const userRole = useUserRole();
+  const {userRole,loading,setUserRole} = useUserRole();
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
-  const [loading, setLoading] = React.useState(false); // State to track loading
   const navigate = useNavigate();
 
 
@@ -58,35 +58,44 @@ export function Navbar() {
   };
 
   const handleLogin = async () => {
-    signInWithPopup(auth, provider)
-      .then(async (result) => {
-        const user = result.user;
-        const userRef = doc(db, "users", user.uid);
-        
-        // Check if the document already exists
-        const docSnap = await getDoc(userRef);
-        if (!docSnap.exists()) {
-          // Add user to Firestore only if the document doesn't exist
-          await setDoc(userRef, {
-            uid: user.uid,
-            role: "patient" // Set default role for new users
-          });
-        }
-      })
-      .catch((error) => {
-        const errorMessage = error.message;
-        toast.error(errorMessage);
-      });
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      const userRef = doc(db, "users", user.uid);
+      
+      // Check if the document already exists
+      const docSnap = await getDoc(userRef);
+      if (!docSnap.exists()) {
+        // Add user to Firestore only if the document doesn't exist
+        await setDoc(userRef, {
+          uid: user.uid,
+          role: "patient" // Set default role for new users
+        });
+  
+        // Set the userRole state for new users
+        setUserRole("patient");
+      } else {
+        // If the user document exists, set the userRole state based on the role in the document
+        const userData = docSnap.data();
+        setUserRole(userData.role);
+      }
+  
+    } catch (error) {
+      const errorMessage = error.message;
+      // eslint-disable-next-line no-undef
+      toast.error(errorMessage);
+    }
   };
 
   const handleLogout = async () => {
     setAnchorElUser(null); 
     await auth.signOut();
+    setUserRole(null);
     navigate("/"); // Navigate to home after logout
   };
 
-  if (loading) {
-    return null;
+  if (currentUser && loading) {
+    return null
   }
 
   return (
@@ -145,18 +154,19 @@ export function Navbar() {
               >
                 {/* Render doctorPages if user is doctor, otherwise render pages */}
                 {userRole === "doctor" ? (
-                  doctorPages.map((page) => (
-                    <MenuItem key={page.name} onClick={() => { handleCloseNavMenu(); navigate(page.path) }}>
-                      <Typography textAlign="center">{page.name}</Typography>
-                    </MenuItem>
-                  ))
-                ) : (
-                  pages.map((page) => (
-                    <MenuItem key={page.name} onClick={() => { handleCloseNavMenu(); navigate(page.path) }}>
-                      <Typography textAlign="center">{page.name}</Typography>
-                    </MenuItem>
-                  ))
-                )}
+                    doctorPages.map((page) => (
+                      <MenuItem key={page.name} onClick={() => { handleCloseNavMenu(); navigate(page.path) }}>
+                        <Typography textAlign="center">{page.name}</Typography>
+                      </MenuItem>
+                    ))
+                  ) : userRole === "patient" ? (
+                    pages.map((page) => (
+                      <MenuItem key={page.name} onClick={() => { handleCloseNavMenu(); navigate(page.path) }}>
+                        <Typography textAlign="center">{page.name}</Typography>
+                      </MenuItem>
+                    ))
+                  ) : null}
+
               </Menu>
             </Box>
           ) : null}
@@ -197,7 +207,7 @@ export function Navbar() {
                     {page.name}
                   </Button>
                 ))
-              ) : (
+              ) : userRole === "patient" ? (
                 pages.map((page) => (
                   <Button
                     key={page.name}
@@ -207,9 +217,10 @@ export function Navbar() {
                     {page.name}
                   </Button>
                 ))
-              )}
+              ) : null}
             </Box>
           ) : null}
+
 
           {!currentUser &&
             <Button color="inherit" onClick={handleLogin}>

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import  { createContext, useContext, useEffect, useState } from 'react';
 import { db } from '../config/firebase';
 import { AuthContext } from './AuthContext';
 import { doc, getDoc } from 'firebase/firestore';
@@ -7,9 +7,11 @@ const UserRoleContext = createContext();
 
 export const useUserRole = () => useContext(UserRoleContext);
 
+// eslint-disable-next-line react/prop-types
 export const UserRoleProvider = ({ children }) => {
   const { currentUser } = useContext(AuthContext);
   const [userRole, setUserRole] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUserRole = async () => {
@@ -19,6 +21,7 @@ export const UserRoleProvider = ({ children }) => {
         if (docSnap.exists()) {
           setUserRole(docSnap.data().role);
         }
+        setLoading(false);
       }
     };
 
@@ -26,7 +29,7 @@ export const UserRoleProvider = ({ children }) => {
   }, [currentUser]);
 
   return (
-    <UserRoleContext.Provider value={userRole}>
+    <UserRoleContext.Provider value={{userRole,setUserRole, loading}}>
       {children}
     </UserRoleContext.Provider>
   );
