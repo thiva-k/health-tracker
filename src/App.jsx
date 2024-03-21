@@ -9,6 +9,7 @@ import { AuthContextProvider } from "./context/AuthContext";
 import { UserRoleProvider } from './context/UserRoleContext';
 import PatientDiary from './components/PatientDiary';
 import BookAppointmentPage from './components/BookAppointmentPage';
+import HealthMetricTrackerPage from './components/HealthMetricPage';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
       <Route exact path="/diary" element = <HealthDiaryPage/> />
       <Route exact path="/patients/diary/:userId" element=<PatientDiary /> />
       <Route exact path="/appointment" element=<BookAppointmentPage /> />
+      <Route exact path="/tracker" element=<HealthMetricTrackerPage /> />
       </Routes>
   </Router>
   </UserRoleProvider>
