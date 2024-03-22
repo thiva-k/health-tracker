@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, FormControl, InputLabel, Select, MenuItem, TextField, Button, Box, Card, CardContent } from '@mui/material';
-import { collection, query, where, getDocs, addDoc, updateDoc, arrayUnion, doc,getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, updateDoc, arrayUnion, doc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { AuthContext } from '../context/AuthContext';
 import { useUserRole } from '../context/UserRoleContext';
@@ -11,32 +11,23 @@ const BookAppointmentPage = () => {
   const [selectedDoctor, setSelectedDoctor] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
-  const { currentUser } = React.useContext(AuthContext);
+  const [currentUserData, setCurrentUserData] = useState(null);
   const [appointmentHistory, setAppointmentHistory] = useState([]);
-  const {userRole} = useUserRole();
+  const { userRole } = useUserRole();
+  const { currentUser } = React.useContext(AuthContext);
 
-  const fetchAppointmentHistory = async () => {
-  try {
-    const q = query(collection(db, 'appointments'), where('userId', '==', currentUser.uid));
-    const querySnapshot = await getDocs(q);
-    const appointmentsData = [];
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        setCurrentUserData(userDoc.data());
+      } catch (error) {
+        console.error('Error fetching user data: ', error);
+      }
+    };
 
-    await Promise.all(querySnapshot.docs.map(async (docSnap) => {
-      const appointment = { id: docSnap.id, ...docSnap.data() };
-      // Fetch doctor's name based on doctorId
-      const doctorDoc = await getDoc(doc(db, 'users', appointment.doctorId));
-      const doctorData = doctorDoc.data();
-      appointment.doctorName = doctorData.name; // Assuming the doctor's name field is 'name'
-      appointmentsData.push(appointment);
-    }));
-
-    setAppointmentHistory(appointmentsData);
-  } catch (error) {
-    console.error('Error fetching appointment history: ', error);
-  }
-};
-
-  
+    fetchUserData();
+  }, [currentUser]);
 
   useEffect(() => {
     const fetchDoctors = async () => {
@@ -57,27 +48,42 @@ const BookAppointmentPage = () => {
   }, []);
 
   useEffect(() => {
-    
+    const fetchAppointmentHistory = async () => {
+      try {
+        const q = query(collection(db, 'appointments'), where('userId', '==', currentUser.uid));
+        const querySnapshot = await getDocs(q);
+        const appointmentsData = [];
+
+        await Promise.all(querySnapshot.docs.map(async (docSnap) => {
+          const appointment = { id: docSnap.id, ...docSnap.data() };
+          const doctorDoc = await getDoc(doc(db, 'users', appointment.doctorId));
+          const doctorData = doctorDoc.data();
+          appointment.doctorName = doctorData.name;
+          appointmentsData.push(appointment);
+        }));
+
+        setAppointmentHistory(appointmentsData);
+      } catch (error) {
+        console.error('Error fetching appointment history: ', error);
+      }
+    };
+
     fetchAppointmentHistory();
-    
-  }, []);
+  }, [currentUser]);
 
   const handleAppointmentConfirmation = async () => {
     try {
-      if (!currentUser) return; // Exit if currentUser is not available
+      if (!currentUser) return;
 
       const appointmentData = {
         userId: currentUser.uid,
         doctorId: selectedDoctor,
         date: selectedDate,
         time: selectedTime,
-        // Add other details as needed
       };
-  
-      // Add appointment to the appointments collection
+
       const appointmentRef = await addDoc(collection(db, 'appointments'), appointmentData);
-  
-      // Find the document ID where uid matches currentUser.uid
+
       const userQuerySnapshot = await getDocs(collection(db, 'users'));
       let userDocumentId;
       userQuerySnapshot.forEach(doc => {
@@ -86,13 +92,11 @@ const BookAppointmentPage = () => {
           userDocumentId = doc.id;
         }
       });
-  
-      // Update patient's document with doctor's ID
+
       await updateDoc(doc(db, 'users', userDocumentId), {
         doctors: arrayUnion(selectedDoctor)
       });
-  
-      // Find the document ID where uid matches selectedDoctor
+
       let doctorDocumentId;
       userQuerySnapshot.forEach(doc => {
         const userData = doc.data();
@@ -100,18 +104,15 @@ const BookAppointmentPage = () => {
           doctorDocumentId = doc.id;
         }
       });
-  
-      // Update doctor's document with patient's ID
+
       await updateDoc(doc(db, 'users', doctorDocumentId), {
         patients: arrayUnion(currentUser.uid)
       });
-  
-      // Optionally, you can clear the form fields after confirmation
+
       setSelectedDoctor('');
       setSelectedDate('');
       setSelectedTime('');
-  
-      // Fetch updated appointment history
+
       fetchAppointmentHistory();
     } catch (error) {
       console.error('Error confirming appointment: ', error);
@@ -143,10 +144,10 @@ const BookAppointmentPage = () => {
         type="date"
         value={selectedDate}
         onChange={(e) => setSelectedDate(e.target.value)}
-        sx={{ mb: 2 }}
         InputLabelProps={{
           shrink: true,
         }}
+        sx={{ mb: 2 }}
       />
       <TextField
         fullWidth
@@ -156,7 +157,7 @@ const BookAppointmentPage = () => {
         onChange={(e) => setSelectedTime(e.target.value)}
         sx={{ mb: 2 }}
         inputProps={{
-          step: 300, // 5 min intervals
+          step: 300,
         }}
         InputLabelProps={{
           shrink: true,

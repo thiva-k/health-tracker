@@ -3,7 +3,6 @@ import { Container, Typography, TextField, Button, Paper, Card, CardContent } fr
 import { collection, query, where, getDocs, addDoc, orderBy } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { AuthContext } from '../context/AuthContext';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 const HealthMetricTrackerPage = () => {
   const [selectedDate, setSelectedDate] = useState('');
@@ -13,16 +12,11 @@ const HealthMetricTrackerPage = () => {
   const [metricHistory, setMetricHistory] = useState([]);
   const { currentUser } = React.useContext(AuthContext);
 
-  // Ensure currentUser exists before accessing its properties
-  const userId = currentUser ? currentUser.uid : null;
-
   const fetchMetricHistory = async () => {
     try {
-      if (!userId) return; // Don't fetch if userId is null
-
       const q = query(
         collection(db, 'health_metrics'),
-        where('userId', '==', userId),
+        where('userId', '==', currentUser.uid),
         orderBy('date', 'desc') // Order by date in descending order
       );
       const querySnapshot = await getDocs(q);
@@ -36,20 +30,18 @@ const HealthMetricTrackerPage = () => {
     }
   };
 
-  // Fetch metric history only if userId is not null
+  // Fetch metric history for the current user
   useEffect(() => {
-    if (userId) {
-      fetchMetricHistory();
-    }
-  }, [userId]);
+    fetchMetricHistory();
+  }, [currentUser]);
 
   // Function to add a new health metric
   const addHealthMetric = async () => {
     try {
-      if (!userId) return;
+      if (!currentUser) return;
 
       const metricData = {
-        userId: userId,
+        userId: currentUser.uid,
         date: selectedDate,
         weight,
         sugarLevel,
@@ -133,46 +125,6 @@ const HealthMetricTrackerPage = () => {
           </CardContent>
         </Card>
       ))}
-      {/* Display charts */}
-      <div>
-        <Typography variant="h5" gutterBottom>
-          Weight Over Time
-        </Typography>
-        <LineChart width={500} height={300} data={metricHistory} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-          <XAxis dataKey="date" />
-          <YAxis />
-          <CartesianGrid strokeDasharray="3 3" />
-          <Tooltip />
-          <Legend />
-          <Line type="monotone" dataKey="weight" stroke="#8884d8" />
-        </LineChart>
-      </div>
-      <div>
-        <Typography variant="h5" gutterBottom>
-          Sugar Level Over Time
-        </Typography>
-        <LineChart width={500} height={300} data={metricHistory} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-          <XAxis dataKey="date" />
-          <YAxis />
-          <CartesianGrid strokeDasharray="3 3" />
-          <Tooltip />
-          <Legend />
-          <Line type="monotone" dataKey="sugarLevel" stroke="#82ca9d" />
-        </LineChart>
-      </div>
-      <div>
-        <Typography variant="h5" gutterBottom>
-          Blood Pressure Over Time
-        </Typography>
-        <LineChart width={500} height={300} data={metricHistory} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-          <XAxis dataKey="date" />
-          <YAxis />
-          <CartesianGrid strokeDasharray="3 3" />
-          <Tooltip />
-          <Legend />
-          <Line type="monotone" dataKey="bloodPressure" stroke="#ffc658" />
-        </LineChart>
-      </div>
     </Container>
   );
 };
