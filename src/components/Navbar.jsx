@@ -25,7 +25,6 @@ import { useUserRole } from '../context/UserRoleContext';
 const pages = [
   { name: 'Home', path: '/' },
   { name: 'Book Appointment', path: '/appointment' },
-  {name: 'About', path:'/about'},
   {name: 'Health Diary', path:'/diary'},
   {name: 'Health Tracker', path:'/tracker'}
 ];

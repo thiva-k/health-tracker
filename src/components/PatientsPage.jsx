@@ -59,6 +59,14 @@ const PatientsPage = () => {
             >
               View Diary
             </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              component={Link}
+              to={`/patients/metrics/${patient.id}`}
+            >
+              View Metrics
+            </Button>
           </CardActions>
         </Card>
       ))}
