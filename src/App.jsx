@@ -11,6 +11,8 @@ import PatientDiary from './components/PatientDiary';
 import BookAppointmentPage from './components/BookAppointmentPage';
 import HealthMetricTrackerPage from './components/HealthMetricPage';
 import PatientsMetricPage from './components/PatientsMetric';
+import ChatListPage from './components/ChatListPage';
+import ChatPage from './components/ChatPage';
 
 function App() {
   return (
@@ -27,6 +29,8 @@ function App() {
       <Route exact path="/patients/metrics/:userId" element=<PatientsMetricPage /> />
       <Route exact path="/appointment" element=<BookAppointmentPage /> />
       <Route exact path="/tracker" element=<HealthMetricTrackerPage /> />
+      <Route exact path="/chat" element=<ChatListPage/> />
+      <Route path="/chat/:doctorId" element=<ChatPage/> />
       </Routes>
   </Router>
   </UserRoleProvider>

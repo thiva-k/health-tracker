@@ -26,7 +26,8 @@ const pages = [
   { name: 'Home', path: '/' },
   { name: 'Book Appointment', path: '/appointment' },
   {name: 'Health Diary', path:'/diary'},
-  {name: 'Health Tracker', path:'/tracker'}
+  {name: 'Health Tracker', path:'/tracker'},
+  { name:'Chat', path:'/chat'},
 ];
 
 const doctorPages = [{ name: 'Home', path: '/' }, { name: 'Patients', path: '/patients' }];
