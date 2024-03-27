@@ -30,7 +30,7 @@ const pages = [
   { name:'Chat', path:'/chat'},
 ];
 
-const doctorPages = [{ name: 'Home', path: '/' }, { name: 'Patients', path: '/patients' }];
+const doctorPages = [{ name: 'Home', path: '/' }, { name: 'Patients', path: '/patients' }, { name: 'Chat', path: '/doctor/chat' }];
 const settings = ['Profile', 'Logout'];
 
 export function Navbar() {

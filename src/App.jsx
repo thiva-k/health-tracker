@@ -13,6 +13,8 @@ import HealthMetricTrackerPage from './components/HealthMetricPage';
 import PatientsMetricPage from './components/PatientsMetric';
 import ChatListPage from './components/ChatListPage';
 import ChatPage from './components/ChatPage';
+import DoctorChatList from './components/DoctorChatList';
+import DoctorChatPage from './components/DoctorChatPage';
 
 function App() {
   return (
@@ -31,6 +33,8 @@ function App() {
       <Route exact path="/tracker" element=<HealthMetricTrackerPage /> />
       <Route exact path="/chat" element=<ChatListPage/> />
       <Route path="/chat/:doctorId" element=<ChatPage/> />
+      <Route exact path="/doctor/chat" element=<DoctorChatList/> />
+      <Route path="/doctor/chat/:patientId" element=<DoctorChatPage/> />
       </Routes>
   </Router>
   </UserRoleProvider>
