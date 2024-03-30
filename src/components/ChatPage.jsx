@@ -73,7 +73,7 @@ const ChatPage = () => {
   if (userRole !== "patient") return null;
 
   return (
-    <Container maxWidth="sm">
+    <Container maxWidth="sm" sx={{ pt: 4 }}>
       <Typography variant="h4" gutterBottom>
         Chat with Doctor
       </Typography>

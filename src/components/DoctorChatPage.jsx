@@ -73,7 +73,7 @@ const DoctorChatPage = () => {
   };
 
   return (
-    <Container maxWidth="sm">
+    <Container maxWidth="sm" sx={{ pt: 4 }}>
       <Typography variant="h4" gutterBottom>
         Chat with Patient ID: {patientId}
       </Typography>
