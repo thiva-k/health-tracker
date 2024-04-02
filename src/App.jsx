@@ -15,6 +15,7 @@ import ChatListPage from './components/ChatListPage';
 import ChatPage from './components/ChatPage';
 import DoctorChatList from './components/DoctorChatList';
 import DoctorChatPage from './components/DoctorChatPage';
+import Footer from './components/Footer';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
       <Route exact path="/doctor/chat" element=<DoctorChatList/> />
       <Route path="/doctor/chat/:patientId" element=<DoctorChatPage/> />
       </Routes>
+      <Footer />
   </Router>
   </UserRoleProvider>
 </AuthContextProvider>

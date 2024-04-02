@@ -73,9 +73,9 @@ const DoctorChatPage = () => {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ pt: 4 }}>
+    <Container maxWidth="md" sx={{ pt: 4 }}>
       <Typography variant="h4" gutterBottom>
-        Chat with Patient ID: {patientId}
+        Chat 
       </Typography>
       <Box sx={{ border: '1px solid #ccc', borderRadius: '4px', overflow: 'auto', maxHeight: '60vh', padding: '10px', marginBottom: '20px' }}>
         {messages.map((message, index) => (

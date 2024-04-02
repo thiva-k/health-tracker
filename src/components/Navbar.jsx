@@ -100,7 +100,7 @@ export function Navbar() {
   }
 
   return (
-    <AppBar position="static">
+    <AppBar position="sticky" sx={{ top: 0, zIndex: (theme) => theme.zIndex.drawer + 1, marginTop: 0, paddingTop: 0 }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <HealthAndSafetyIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
