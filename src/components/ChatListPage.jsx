@@ -59,6 +59,7 @@ const ChatListPage = () => {
           </Card>
         ))}
       </div>
+      <div style={{ paddingBottom: '400px' }}></div>
     </div>
   );
 };
