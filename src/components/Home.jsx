@@ -37,7 +37,7 @@ const Home = () => {
   return (
     <>
       <main>
-        <Container maxWidth="md" style={{ marginTop: '50px' }}>
+        <Container maxWidth="lg" style={{ marginTop: '50px' }}>
           <Typography variant="h4" gutterBottom align="center">Welcome to Health Tracker</Typography>
           <Typography variant="body1" gutterBottom align="center">Track your health and well-being with us!</Typography>
 
