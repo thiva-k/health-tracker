@@ -28,6 +28,7 @@ const pages = [
   {name: 'Health Diary', path:'/diary'},
   {name: 'Health Tracker', path:'/tracker'},
   { name:'Chat', path:'/chat'},
+  {name: 'Reports', path:'/reports'}
 ];
 
 const doctorPages = [{ name: 'Home', path: '/' }, { name: 'Patients', path: '/patients' }, { name: 'Chat', path: '/doctor/chat' }];
