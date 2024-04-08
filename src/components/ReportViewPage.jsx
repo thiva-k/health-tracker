@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import { db } from '../config/firebase'; // Ensure db is the Firestore instance
 import { AuthContext } from '../context/AuthContext';
 import { Typography, Button, Grid, Card, CardContent, CardActions, TextField } from '@mui/material';
 
@@ -14,8 +14,7 @@ const ReportViewPage = () => {
 
   const fetchReports = async () => {
     try {
-      const userRef = collection(db, 'reports');
-      const q = query(userRef, where('userId', '==', currentUser.uid), where('section', '==', section));
+      const q = query(collection(db, 'reports'), where('userId', '==', currentUser.uid), where('section', '==', section));
       const querySnapshot = await getDocs(q);
       const reportsData = [];
       querySnapshot.forEach((doc) => {
@@ -29,14 +28,12 @@ const ReportViewPage = () => {
   };
 
   useEffect(() => {
-    
-
     fetchReports();
   }, [currentUser, section]);
 
   const handleUpload = async () => {
     try {
-      await db.collection('reports').add({
+      await addDoc(collection(db, 'reports'), {
         userId: currentUser.uid,
         section: section,
         report: newReport,
