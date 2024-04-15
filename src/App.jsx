@@ -40,7 +40,6 @@ function App() {
       <Route path="/doctor/chat/:patientId" element=<DoctorChatPage/> />
       <Route path="/reports" element = <ReportListPage/> />
       <Route path="/report/:section" element = <ReportViewPage/> />
-      
       </Routes>
       <Footer />
   </Router>
