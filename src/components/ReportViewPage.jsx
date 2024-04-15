@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../config/firebase'; // Ensure db is the Firestore instance
 import { AuthContext } from '../context/AuthContext';
 import { Typography, Button, Grid, Card, CardContent, CardActions, TextField } from '@mui/material';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage'; // Import necessary functions from Firebase Storage
 
 const ReportViewPage = () => {
   const { section } = useParams();
@@ -11,6 +12,8 @@ const ReportViewPage = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newReport, setNewReport] = useState('');
+  const [newImage, setNewImage] = useState(null);
+  const storage = getStorage();
 
   const fetchReports = async () => {
     try {
@@ -33,13 +36,24 @@ const ReportViewPage = () => {
 
   const handleUpload = async () => {
     try {
-      await addDoc(collection(db, 'reports'), {
+      const reportData = {
         userId: currentUser.uid,
         section: section,
         report: newReport,
-        createdAt: new Date().toISOString(),
-      });
+        createdAt: serverTimestamp(),
+      };
+
+      if (newImage) {
+        const storageRef = ref(storage, `reports/${currentUser.uid}/${Date.now()}_${newImage.name}`);
+        const uploadTask = uploadBytes(storageRef, newImage);
+        const snapshot = await uploadTask;
+        const imageURL = await getDownloadURL(snapshot.ref);
+        reportData.imageURL = imageURL;
+      }
+
+      await addDoc(collection(db, 'reports'), reportData);
       setNewReport('');
+      setNewImage(null);
       fetchReports();
     } catch (error) {
       console.error('Error uploading report: ', error);
@@ -61,6 +75,7 @@ const ReportViewPage = () => {
                 <Card style={{ minWidth: '250px', margin: '10px' }}>
                   <CardContent>
                     <Typography variant="body1">{report.report}</Typography>
+                    {report.imageURL && <img src={report.imageURL} alt="Report" style={{ maxWidth: '100%' }} />}
                   </CardContent>
                 </Card>
               </Grid>
@@ -78,6 +93,7 @@ const ReportViewPage = () => {
           value={newReport}
           onChange={(e) => setNewReport(e.target.value)}
         />
+        <input type="file" accept="image/*" onChange={(e) => setNewImage(e.target.files[0])} style={{ marginTop: '10px' }} />
         <Button variant="contained" color="primary" onClick={handleUpload} style={{ marginTop: '10px' }}>
           Upload Report
         </Button>
