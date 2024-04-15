@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Grid, Card, CardContent, Paper, Slider } from '@mui/material';
+import { Container, Typography, Grid, Card, CardContent, Paper } from '@mui/material';
 
 const Home = () => {
   const [photoIndex, setPhotoIndex] = useState(0);
@@ -26,20 +26,27 @@ const Home = () => {
 
   useEffect(() => {
     fetchHealthTips();
+    const intervalId = setInterval(() => {
+      // Increment the photoIndex to move to the next photo
+      setPhotoIndex(prevIndex => (prevIndex + 1) % photos.length);
+    }, 3000); // Change photo every 3 seconds
+
+    // Clear the interval when component unmounts to avoid memory leaks
+    return () => clearInterval(intervalId);
   }, []);
 
-  const handlePhotoChange = (event, newValue) => {
-    setPhotoIndex(newValue);
+  const handlePhotoChange = (index) => {
+    setPhotoIndex(index);
   };
 
   return (
     <main>
-      <Container maxWidth="lg" style={{ marginTop: '50px' }}>
+      <Container maxWidth="lg" style={{ marginTop: '30px', paddingBottom: '20px' }}>
         <Typography variant="h4" gutterBottom align="center" sx={{ marginBottom: '20px' }}>Welcome to Health Tracker</Typography>
-        <Typography variant="body1" gutterBottom align="center" sx={{ marginBottom: '40px' }}>Track your health and well-being with us!</Typography>
+        <Typography variant="body1" gutterBottom align="center" sx={{ marginBottom: '20px' }}>Track your health and well-being with us!</Typography>
 
         <Grid container justifyContent="center">
-          <Paper elevation={3} sx={{ position: 'relative', width: '850px', height: '450px', borderRadius: '16px', marginBottom: '40px' }}>
+          <Paper elevation={3} sx={{ position: 'relative', width: '850px', height: '450px', borderRadius: '16px', marginBottom: '20px' }}>
             <img
               src={photos[photoIndex]}
               alt="Health"
@@ -72,7 +79,7 @@ const Home = () => {
                     backgroundColor: index === photoIndex ? '#1976d2' : '#bdbdbd',
                     cursor: 'pointer',
                   }}
-                  onClick={() => handlePhotoChange(_, index)}
+                  onClick={() => handlePhotoChange(index)}
                 />
               ))}
             </Paper>
@@ -92,7 +99,6 @@ const Home = () => {
             </Grid>
           ))}
         </Grid>
-        <br></br>
       </Container>
     </main>
   );
