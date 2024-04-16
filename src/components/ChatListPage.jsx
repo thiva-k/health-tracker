@@ -4,7 +4,7 @@ import { collection, query, getDocs, where } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useUserRole } from '../context/UserRoleContext';
 import { AuthContext } from '../context/AuthContext';
-import { Card, CardContent, Typography } from '@mui/material';
+import { Container, Card, CardContent, Typography } from '@mui/material';
 
 const ChatListPage = () => {
   const [doctors, setDoctors] = useState([]);
@@ -36,7 +36,7 @@ const ChatListPage = () => {
   }
 
   return (
-    <div>
+    <Container maxWidth="md" sx={{ pt: 4 }} style={{ marginTop: '10px', marginBottom: '20px' }}>
       <Typography variant="h4" gutterBottom style={{ textAlign: 'center', marginTop: '20px' }}>
         Available Doctors
       </Typography>
@@ -59,8 +59,7 @@ const ChatListPage = () => {
           </Card>
         ))}
       </div>
-      <div style={{ paddingBottom: '400px' }}></div>
-    </div>
+    </Container>
   );
 };
 

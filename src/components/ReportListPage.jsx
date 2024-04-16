@@ -4,7 +4,7 @@ import { collection, query, getDocs, where } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useUserRole } from '../context/UserRoleContext';
 import { AuthContext } from '../context/AuthContext';
-import { Card, CardContent, Typography } from '@mui/material';
+import { Container, Card, CardContent, Typography } from '@mui/material';
 
 const ReportListPage = () => {
   const [sections, setSections] = useState([]);
@@ -31,7 +31,7 @@ const ReportListPage = () => {
   }
 
   return (
-    <div>
+    <Container maxWidth="md" sx={{ pt: 4 }} style={{  marginBottom: '20px' }}>
       <Typography variant="h4" gutterBottom style={{ textAlign: 'center', marginTop: '20px' }}>
         Health Sections
       </Typography>
@@ -51,7 +51,7 @@ const ReportListPage = () => {
           </Card>
         ))}
       </div>
-    </div>
+    </Container>
   );
 };
 

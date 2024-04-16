@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../config/firebase'; // Ensure db is the Firestore instance
 import { AuthContext } from '../context/AuthContext';
-import { Typography, Button, Grid, Card, CardContent, CardActions, TextField } from '@mui/material';
+import { Container, Typography, Button, Grid, Card, CardContent, TextField } from '@mui/material';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage'; // Import necessary functions from Firebase Storage
 
 const ReportViewPage = () => {
@@ -13,6 +13,7 @@ const ReportViewPage = () => {
   const [loading, setLoading] = useState(true);
   const [newReport, setNewReport] = useState('');
   const [newImage, setNewImage] = useState(null);
+  const [reportDate, setReportDate] = useState(''); // State variable to hold the selected date in ISO string format
   const storage = getStorage();
 
   const fetchReports = async () => {
@@ -21,7 +22,11 @@ const ReportViewPage = () => {
       const querySnapshot = await getDocs(q);
       const reportsData = [];
       querySnapshot.forEach((doc) => {
-        reportsData.push({ id: doc.id, ...doc.data() });
+        const data = doc.data();
+        if (data.createdAt && data.createdAt.toDate) {
+          data.createdAt = data.createdAt.toDate(); // Convert createdAt to Date object
+        }
+        reportsData.push({ id: doc.id, ...data });
       });
       setReports(reportsData);
       setLoading(false);
@@ -51,9 +56,14 @@ const ReportViewPage = () => {
         reportData.imageURL = imageURL;
       }
 
+      if (reportDate) {
+        reportData.createdAt = new Date(reportDate); // Convert reportDate to Date object
+      }
+
       await addDoc(collection(db, 'reports'), reportData);
       setNewReport('');
       setNewImage(null);
+      setReportDate(''); // Reset report date after upload
       fetchReports();
     } catch (error) {
       console.error('Error uploading report: ', error);
@@ -61,7 +71,7 @@ const ReportViewPage = () => {
   };
 
   return (
-    <div>
+    <Container maxWidth="md" sx={{ pt: 4 }} style={{  marginBottom: '20px' }}>
       <Typography variant="h4" gutterBottom style={{ textAlign: 'center', marginTop: '20px' }}>
         {section} Reports
       </Typography>
@@ -74,6 +84,11 @@ const ReportViewPage = () => {
               <Grid item key={report.id}>
                 <Card style={{ minWidth: '250px', margin: '10px' }}>
                   <CardContent>
+                    {report.createdAt && (
+                      <Typography variant="caption" color="textSecondary" style={{ marginBottom: '8px' }}>
+                        {new Date(report.createdAt).toLocaleDateString()}
+                      </Typography>
+                    )}
                     <Typography variant="body1">{report.report}</Typography>
                     {report.imageURL && <img src={report.imageURL} alt="Report" style={{ maxWidth: '100%' }} />}
                   </CardContent>
@@ -85,6 +100,17 @@ const ReportViewPage = () => {
       </Grid>
       <div style={{ marginTop: '20px' }}>
         <TextField
+          fullWidth
+          label="Select Date"
+          type="date"
+          value={reportDate}
+          onChange={(e) => setReportDate(e.target.value)}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          sx={{ marginBottom: 2 }}
+        />
+        <TextField
           label="New Report"
           variant="outlined"
           multiline
@@ -93,12 +119,14 @@ const ReportViewPage = () => {
           value={newReport}
           onChange={(e) => setNewReport(e.target.value)}
         />
+        <div>
         <input type="file" accept="image/*" onChange={(e) => setNewImage(e.target.files[0])} style={{ marginTop: '10px' }} />
+        </div>
         <Button variant="contained" color="primary" onClick={handleUpload} style={{ marginTop: '10px' }}>
           Upload Report
         </Button>
       </div>
-    </div>
+    </Container>
   );
 };
 
