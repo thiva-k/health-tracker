@@ -18,6 +18,8 @@ import DoctorChatPage from './components/DoctorChatPage';
 import Footer from './components/Footer';
 import ReportListPage from './components/ReportListPage';
 import ReportViewPage  from './components/ReportViewPage';
+import PatientsReportListPage from './components/PatientsReportListPage';
+import PatientsReportViewPage from './components/PatientsReportViewPage';
 
 function App() {
   return (
@@ -40,6 +42,8 @@ function App() {
       <Route path="/doctor/chat/:patientId" element=<DoctorChatPage/> />
       <Route path="/reports" element = <ReportListPage/> />
       <Route path="/report/:section" element = <ReportViewPage/> />
+      <Route path="/patients/reports/:patientId" element=<PatientsReportListPage /> />
+      <Route path="/patients/reports/:patientId/:section" element=<PatientsReportViewPage /> />
       </Routes>
       <Footer />
   </Router>

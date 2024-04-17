@@ -73,7 +73,7 @@ const DoctorChatPage = () => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ pt: 4 }}>
+    <Container maxWidth="md" sx={{ pt: 4 }} style={{ marginTop: '10px', marginBottom: '20px' }}>
       <Typography variant="h4" gutterBottom>
         Chat 
       </Typography>
