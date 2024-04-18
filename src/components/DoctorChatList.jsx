@@ -45,10 +45,10 @@ const DoctorChatList = () => {
       </Typography>
       <div style={{ display: 'flex', flexWrap: 'wrap' }}>
         {patients.map(patient => (
-          <Card key={patient.patientId} style={{ minWidth: '250px', margin: '10px', flex: '1 0 30%' }}>
+          <Card key={patient.patientId} style={{ margin: '10px', flex: '1 0 30%' }}>
             <ListItem component={Link} to={`/doctor/chat/${patient.patientId}`}>
               <CardContent>
-                <Typography variant="h6">{`${patient.patientName}`}</Typography>
+                <Typography >{`${patient.patientName}`}</Typography>
               </CardContent>
             </ListItem>
           </Card>

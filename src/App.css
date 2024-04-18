@@ -1,0 +1,11 @@
+/* App.css */
+.App {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Set minimum height to fill the viewport */
+  }
+  
+  .MainContent {
+    flex: 1; /* Allow MainContent to grow and take remaining space */
+  }
+  
