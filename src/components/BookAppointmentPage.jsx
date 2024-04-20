@@ -146,7 +146,7 @@ const BookAppointmentPage = () => {
   return (
     <Container maxWidth="md" sx={{ pt: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        Book Appointment
+        Book Virtual Appointment
       </Typography>
       <FormControl fullWidth sx={{ mb: 2 }}>
         <InputLabel id="speciality-label">Select Speciality</InputLabel>
