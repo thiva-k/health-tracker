@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, FormControl, InputLabel, Select, MenuItem, TextField, Button, Box, Card, CardContent } from '@mui/material';
-import { collection, query, where, getDocs, addDoc, updateDoc, arrayUnion, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, updateDoc, arrayUnion, doc, getDoc , deleteDoc} from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { AuthContext } from '../context/AuthContext';
 import { useUserRole } from '../context/UserRoleContext';
 
-
 const BookAppointmentPage = () => {
   const [doctors, setDoctors] = useState([]);
+  const [selectedSpeciality, setSelectedSpeciality] = useState('');
   const [selectedDoctor, setSelectedDoctor] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
@@ -16,9 +16,31 @@ const BookAppointmentPage = () => {
   const { userRole } = useUserRole();
   const { currentUser } = React.useContext(AuthContext);
 
+  const fetchAppointmentHistory = async () => {
+    try {
+      if (!currentUser) return;
+      const q = query(collection(db, 'appointments'), where('userId', '==', currentUser.uid));
+      const querySnapshot = await getDocs(q);
+      const appointmentsData = [];
+
+      await Promise.all(querySnapshot.docs.map(async (docSnap) => {
+        const appointment = { id: docSnap.id, ...docSnap.data() };
+        const doctorDoc = await getDoc(doc(db, 'users', appointment.doctorId));
+        const doctorData = doctorDoc.data();
+        appointment.doctorName = doctorData.name;
+        appointmentsData.push(appointment);
+      }));
+
+      setAppointmentHistory(appointmentsData);
+    } catch (error) {
+      console.error('Error fetching appointment history: ', error);
+    }
+  };
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        if (!currentUser) return;
         const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
         setCurrentUserData(userDoc.data());
       } catch (error) {
@@ -32,7 +54,12 @@ const BookAppointmentPage = () => {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const q = query(collection(db, 'users'), where('role', '==', 'doctor'));
+        let q;
+        if (selectedSpeciality) {
+          q = query(collection(db, 'users'), where('role', '==', 'doctor'), where('doctorType', '==', selectedSpeciality));
+        } else {
+          q = query(collection(db, 'users'), where('role', '==', 'doctor'));
+        }
         const querySnapshot = await getDocs(q);
         const doctorsData = [];
         querySnapshot.forEach((doc) => {
@@ -45,28 +72,10 @@ const BookAppointmentPage = () => {
     };
 
     fetchDoctors();
-  }, []);
+  }, [selectedSpeciality]);
 
   useEffect(() => {
-    const fetchAppointmentHistory = async () => {
-      try {
-        const q = query(collection(db, 'appointments'), where('userId', '==', currentUser.uid));
-        const querySnapshot = await getDocs(q);
-        const appointmentsData = [];
 
-        await Promise.all(querySnapshot.docs.map(async (docSnap) => {
-          const appointment = { id: docSnap.id, ...docSnap.data() };
-          const doctorDoc = await getDoc(doc(db, 'users', appointment.doctorId));
-          const doctorData = doctorDoc.data();
-          appointment.doctorName = doctorData.name;
-          appointmentsData.push(appointment);
-        }));
-
-        setAppointmentHistory(appointmentsData);
-      } catch (error) {
-        console.error('Error fetching appointment history: ', error);
-      }
-    };
 
     fetchAppointmentHistory();
   }, [currentUser]);
@@ -82,7 +91,7 @@ const BookAppointmentPage = () => {
         time: selectedTime,
       };
 
-      const appointmentRef = await addDoc(collection(db, 'appointments'), appointmentData);
+      await addDoc(collection(db, 'appointments'), appointmentData);
 
       const userQuerySnapshot = await getDocs(collection(db, 'users'));
       let userDocumentId;
@@ -93,9 +102,11 @@ const BookAppointmentPage = () => {
         }
       });
 
-      await updateDoc(doc(db, 'users', userDocumentId), {
-        doctors: arrayUnion(selectedDoctor)
-      });
+      if (userDocumentId) {
+        await updateDoc(doc(db, 'users', userDocumentId), {
+          doctors: arrayUnion(selectedDoctor)
+        });
+      }
 
       let doctorDocumentId;
       userQuerySnapshot.forEach(doc => {
@@ -105,9 +116,11 @@ const BookAppointmentPage = () => {
         }
       });
 
-      await updateDoc(doc(db, 'users', doctorDocumentId), {
-        patients: arrayUnion(currentUser.uid)
-      });
+      if (doctorDocumentId) {
+        await updateDoc(doc(db, 'users', doctorDocumentId), {
+          patients: arrayUnion(currentUser.uid)
+        });
+      }
 
       setSelectedDoctor('');
       setSelectedDate('');
@@ -119,6 +132,15 @@ const BookAppointmentPage = () => {
     }
   };
 
+  const handleDeleteAppointment = async (appointmentId) => {
+    try {
+      await deleteDoc(doc(db, 'appointments', appointmentId));
+      fetchAppointmentHistory();
+    } catch (error) {
+      console.error('Error deleting appointment: ', error);
+    }
+  };
+
   if (userRole !== "patient") return null;
 
   return (
@@ -127,11 +149,27 @@ const BookAppointmentPage = () => {
         Book Appointment
       </Typography>
       <FormControl fullWidth sx={{ mb: 2 }}>
+        <InputLabel id="speciality-label">Select Speciality</InputLabel>
+        <Select
+          labelId="speciality-label"
+          value={selectedSpeciality}
+          onChange={(e) => setSelectedSpeciality(e.target.value)}
+        >
+          <MenuItem value="">Select Speciality</MenuItem>
+          <MenuItem value="Cardiology">Cardiology</MenuItem>
+          <MenuItem value="Dermatology">Dermatology</MenuItem>
+          <MenuItem value="Neurology">Neurology</MenuItem>
+          <MenuItem value="Orthopedics">Orthopedics</MenuItem>
+          <MenuItem value="Psychiatry">Psychiatry</MenuItem>
+        </Select>
+      </FormControl>
+      <FormControl fullWidth sx={{ mb: 2 }}>
         <InputLabel id="doctor-label">Select Doctor</InputLabel>
         <Select
           labelId="doctor-label"
           value={selectedDoctor}
           onChange={(e) => setSelectedDoctor(e.target.value)}
+          disabled={!selectedSpeciality}
         >
           {doctors.map((doctor) => (
             <MenuItem key={doctor.id} value={doctor.id}>{doctor.name}</MenuItem>
@@ -148,6 +186,7 @@ const BookAppointmentPage = () => {
           shrink: true,
         }}
         sx={{ mb: 2 }}
+        inputProps={{ min: new Date().toISOString().split('T')[0] }} // Allow only dates after current date
       />
       <TextField
         fullWidth
@@ -181,6 +220,16 @@ const BookAppointmentPage = () => {
               <Typography variant="body1">
                 Date: {appointment.date}, Time: {appointment.time}, Doctor: {appointment.doctorName}
               </Typography>
+              {new Date(appointment.date + ' ' + appointment.time) > new Date() && (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => handleDeleteAppointment(appointment.id)}
+                  sx={{ mt: 1 }}
+                >
+                  Delete
+                </Button>
+              )}
             </CardContent>
           </Card>
         ))}
