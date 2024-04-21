@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../config/firebase'; // Ensure db is the Firestore instance
+import { collection, query, where, getDocs, addDoc, deleteDoc, serverTimestamp, doc } from 'firebase/firestore';
+import { db } from '../config/firebase';
 import { AuthContext } from '../context/AuthContext';
 import { Container, Typography, Button, Grid, Card, CardContent, TextField } from '@mui/material';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage'; // Import necessary functions from Firebase Storage
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const ReportViewPage = () => {
   const { section } = useParams();
@@ -13,18 +13,23 @@ const ReportViewPage = () => {
   const [loading, setLoading] = useState(true);
   const [newReport, setNewReport] = useState('');
   const [newImage, setNewImage] = useState(null);
-  const [reportDate, setReportDate] = useState(''); // State variable to hold the selected date in ISO string format
+  const [reportDate, setReportDate] = useState('');
   const storage = getStorage();
 
   const fetchReports = async () => {
     try {
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
+      
       const q = query(collection(db, 'reports'), where('userId', '==', currentUser.uid), where('section', '==', section));
       const querySnapshot = await getDocs(q);
       const reportsData = [];
       querySnapshot.forEach((doc) => {
         const data = doc.data();
         if (data.createdAt && data.createdAt.toDate) {
-          data.createdAt = data.createdAt.toDate(); // Convert createdAt to Date object
+          data.createdAt = data.createdAt.toDate();
         }
         reportsData.push({ id: doc.id, ...data });
       });
@@ -57,21 +62,30 @@ const ReportViewPage = () => {
       }
 
       if (reportDate) {
-        reportData.createdAt = new Date(reportDate); // Convert reportDate to Date object
+        reportData.createdAt = new Date(reportDate);
       }
 
       await addDoc(collection(db, 'reports'), reportData);
       setNewReport('');
       setNewImage(null);
-      setReportDate(''); // Reset report date after upload
+      setReportDate('');
       fetchReports();
     } catch (error) {
       console.error('Error uploading report: ', error);
     }
   };
 
+  const handleDelete = async (reportId) => {
+    try {
+      await deleteDoc(doc(db, 'reports', reportId)); // Construct document reference using doc() function
+      setReports(reports.filter((report) => report.id !== reportId));
+    } catch (error) {
+      console.error('Error deleting report: ', error);
+    }
+  };
+
   return (
-    <Container maxWidth="md" sx={{ pt: 4 }} style={{  marginBottom: '20px' }}>
+    <Container maxWidth="md" sx={{ pt: 4 }} style={{ marginBottom: '20px' }}>
       <Typography variant="h4" gutterBottom style={{ textAlign: 'center', marginTop: '20px' }}>
         {section} Reports
       </Typography>
@@ -91,6 +105,9 @@ const ReportViewPage = () => {
                     )}
                     <Typography variant="body1">{report.report}</Typography>
                     {report.imageURL && <img src={report.imageURL} alt="Report" style={{ maxWidth: '100%' }} />}
+                    <Button variant="outlined" color="error" onClick={() => handleDelete(report.id)} style={{ marginTop: '10px' }}>
+                      Delete
+                    </Button>
                   </CardContent>
                 </Card>
               </Grid>
@@ -109,6 +126,7 @@ const ReportViewPage = () => {
             shrink: true,
           }}
           sx={{ marginBottom: 2 }}
+          inputProps={{ min: new Date().toISOString().split('T')[0] }} // Allow only dates after current date
         />
         <TextField
           label="New Report"
@@ -120,7 +138,7 @@ const ReportViewPage = () => {
           onChange={(e) => setNewReport(e.target.value)}
         />
         <div>
-        <input type="file" accept="image/*" onChange={(e) => setNewImage(e.target.files[0])} style={{ marginTop: '10px' }} />
+          <input type="file" accept="image/*" onChange={(e) => setNewImage(e.target.files[0])} style={{ marginTop: '10px' }} />
         </div>
         <Button variant="contained" color="primary" onClick={handleUpload} style={{ marginTop: '10px' }}>
           Upload Report

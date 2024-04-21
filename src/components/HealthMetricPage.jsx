@@ -11,6 +11,7 @@ const HealthMetricTrackerPage = () => {
   const [weight, setWeight] = useState('');
   const [sugarLevel, setSugarLevel] = useState('');
   const [bloodPressure, setBloodPressure] = useState('');
+  const [waterIntake, setWaterIntake] = useState('');
   const [metricHistory, setMetricHistory] = useState([]);
   const [loading, setLoading] = useState(true); // Add loading state
   const { currentUser } = React.useContext(AuthContext);
@@ -58,6 +59,7 @@ const HealthMetricTrackerPage = () => {
         weight,
         sugarLevel,
         bloodPressure,
+        waterIntake,
         // Add other details as needed
       };
 
@@ -68,6 +70,7 @@ const HealthMetricTrackerPage = () => {
       setWeight('');
       setSugarLevel('');
       setBloodPressure('');
+      setWaterIntake('');
       
       // Refetch metric history to update UI
       fetchMetricHistory();
@@ -97,6 +100,7 @@ const HealthMetricTrackerPage = () => {
             shrink: true,
           }}
           sx={{ mb: 2 }}
+          inputProps={{ min: new Date().toISOString().split('T')[0] }} // Allow only dates after current date
         />
         <TextField
           fullWidth
@@ -122,6 +126,14 @@ const HealthMetricTrackerPage = () => {
           onChange={(e) => setBloodPressure(e.target.value)}
           sx={{ mb: 2 }}
         />
+        <TextField
+          fullWidth
+          label="Water Intake (in ml)"
+          type="number"
+          value={waterIntake}
+          onChange={(e) => setWaterIntake(e.target.value)}
+          sx={{ mb: 2 }}
+        />
         <Button
           variant="contained"
           color="primary"
@@ -136,7 +148,7 @@ const HealthMetricTrackerPage = () => {
         <Card key={metric.id} sx={{ boxShadow: 3, mb: 2 }}>
           <CardContent>
             <Typography variant="body1">
-              Date: {metric.date}, Weight: {metric.weight} kg, Sugar Level: {metric.sugarLevel} mg/dL, Blood Pressure: {metric.bloodPressure} mmHg
+              Date: {metric.date}, Weight: {metric.weight} kg, Sugar Level: {metric.sugarLevel} mg/dL, Blood Pressure: {metric.bloodPressure} mmHg, Water Intake: {metric.waterIntake} ml
             </Typography>
           </CardContent>
         </Card>
@@ -185,6 +197,21 @@ const HealthMetricTrackerPage = () => {
               <Tooltip />
               <Legend />
               <Line type="monotone" dataKey="bloodPressure" stroke="#ffc658" />
+            </LineChart>
+          </ResponsiveContainer>
+        </Paper>
+        <Paper elevation={3}>
+          <Typography variant="h5" gutterBottom align="center">
+            Water Intake Over Time
+          </Typography>
+          <ResponsiveContainer width="95%" height={300}>
+            <LineChart data={metricHistory}>
+              <XAxis dataKey="date" />
+              <YAxis />
+              <CartesianGrid strokeDasharray="3 3" />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="waterIntake" stroke="#0088FE" />
             </LineChart>
           </ResponsiveContainer>
         </Paper>
