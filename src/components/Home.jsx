@@ -40,10 +40,36 @@ const Home = () => {
   };
 
   return (
+
     <main>
+      
       <Container maxWidth="lg" style={{ marginTop: '30px', paddingBottom: '20px' }}>
-        <Typography variant="h4" gutterBottom align="center" sx={{ marginBottom: '20px' }}>Welcome to Health Tracker</Typography>
-        <Typography variant="body1" gutterBottom align="center" sx={{ marginBottom: '20px' }}>Track your health and well-being with us!</Typography>
+
+          <Paper
+          elevation={3}
+          sx={{
+            position: 'relative',
+            width: '100%',
+            height: '300px',
+            backgroundColor: '#f0f0f0', // Set background color
+            backgroundImage: `url('https://slidebazaar.com/wp-content/uploads/2022/05/white-background-slides-SB02298.jpg')`, // Set background image
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            marginBottom: '30px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            textAlign: 'center',
+          }}
+        >
+          <Typography variant="h2" component="h1" gutterBottom>
+            Welcome to Health Tracker
+          </Typography>
+          <Typography variant="h6" gutterBottom>
+            Track your health and well-being with us!
+          </Typography>
+        </Paper>
 
         <Grid container justifyContent="center">
           <Paper elevation={3} sx={{ position: 'relative', width: '850px', height: '450px', borderRadius: '16px', marginBottom: '20px' }}>
