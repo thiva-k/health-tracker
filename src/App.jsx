@@ -20,6 +20,7 @@ import ReportListPage from './components/ReportListPage';
 import ReportViewPage  from './components/ReportViewPage';
 import PatientsReportListPage from './components/PatientsReportListPage';
 import PatientsReportViewPage from './components/PatientsReportViewPage';
+import DoctorAppointmentPage from './components/DoctorAppointmentPage';
 import './App.css'; // Import CSS file
 
 function App() {
@@ -47,6 +48,7 @@ function App() {
                 <Route path="/report/:section" element={<ReportViewPage />} />
                 <Route path="/patients/reports/:patientId" element={<PatientsReportListPage />} />
                 <Route path="/patients/reports/:patientId/:section" element={<PatientsReportViewPage />} />
+                <Route path="/doctor/appointments" element={<DoctorAppointmentPage />} />
               </Routes>
             </div>
             <Footer />
