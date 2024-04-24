@@ -20,6 +20,7 @@ const Home = () => {
       'Get regular exercise to keep your body and mind healthy.',
       'Practice good hygiene to prevent the spread of germs and illness.',
       'Make time for relaxation and stress-relief activities.',
+      'Get 8 hours of sleep daily for your body to repair.'
     ];
     setHealthTips(data);
   };
