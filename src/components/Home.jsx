@@ -120,7 +120,7 @@ const Home = () => {
             <Grid item xs={12} sm={6} md={4} key={index}>
               <Card elevation={3} sx={{ borderRadius: '16px' }}>
                 <CardContent>
-                  <Typography variant="body1">{tip}</Typography>
+                  <Typography variant="h6">{tip}</Typography>
                 </CardContent>
               </Card>
             </Grid>

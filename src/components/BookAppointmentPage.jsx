@@ -28,6 +28,7 @@ const BookAppointmentPage = () => {
         const doctorDoc = await getDoc(doc(db, 'users', appointment.doctorId));
         const doctorData = doctorDoc.data();
         appointment.doctorName = doctorData.name;
+        appointment.status = appointment.status || 'completed'; // Set default status to completed if not available
         appointmentsData.push(appointment);
       }));
 
@@ -75,8 +76,6 @@ const BookAppointmentPage = () => {
   }, [selectedSpeciality]);
 
   useEffect(() => {
-
-
     fetchAppointmentHistory();
   }, [currentUser]);
 
@@ -89,6 +88,7 @@ const BookAppointmentPage = () => {
         doctorId: selectedDoctor,
         date: selectedDate,
         time: selectedTime,
+        status: 'pending', // Set the initial status to pending
       };
 
       await addDoc(collection(db, 'appointments'), appointmentData);
@@ -218,7 +218,12 @@ const BookAppointmentPage = () => {
           <Card key={appointment.id} sx={{ mb: 2 }}>
             <CardContent>
               <Typography variant="body1">
-                Date: {appointment.date}, Time: {appointment.time}, Doctor: {appointment.doctorName}
+                Date: {appointment.date}, Time: {appointment.time}, Doctor: {appointment.doctorName}, 
+                Status: 
+                <span style={{ color: appointment.status === 'pending' ? 'yellow' : 
+                                  appointment.status === 'confirmed' ? 'green' : 'red'}}>
+                  {appointment.status}
+                </span>
               </Typography>
               {new Date(appointment.date + ' ' + appointment.time) > new Date() && (
                 <Button

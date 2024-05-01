@@ -48,7 +48,7 @@ const PatientsPage = () => {
       {patients.map((patient) => (
         <Card key={patient.id} variant="outlined" sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <CardContent>
-            <Typography variant="body1">{patient.name}</Typography>
+            <Typography variant="h6">{patient.name}</Typography>
           </CardContent>
           <CardActions>
             <Button

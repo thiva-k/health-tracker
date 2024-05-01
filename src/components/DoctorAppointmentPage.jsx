@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Card, CardContent, Button } from '@mui/material';
-import { collection, query, where, getDocs, deleteDoc, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, deleteDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { AuthContext } from '../context/AuthContext';
 
@@ -20,6 +20,7 @@ const DoctorAppointmentPage = () => {
         const userDoc = await getDoc(doc(db, 'users', appointment.userId));
         const userData = userDoc.data();
         appointment.patientName = userData.name;
+        appointment.status = appointment.status || 'completed'; // Set default status to completed if not available
         appointmentsData.push(appointment);
       }));
 
@@ -42,6 +43,17 @@ const DoctorAppointmentPage = () => {
     }
   };
 
+  const handleConfirmAppointment = async (appointmentId) => {
+    try {
+      await updateDoc(doc(db, 'appointments', appointmentId), {
+        status: 'confirmed',
+      });
+      fetchAppointmentHistory();
+    } catch (error) {
+      console.error('Error confirming appointment: ', error);
+    }
+  };
+
   return (
     <Container maxWidth="md" sx={{ pt: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -52,18 +64,31 @@ const DoctorAppointmentPage = () => {
           <Card key={appointment.id} sx={{ mb: 2 }}>
             <CardContent>
               <Typography variant="body1">
-                Patient: {appointment.patientName}, Date: {appointment.date}, Time: {appointment.time}
+                Patient: {appointment.patientName}, Date: {appointment.date}, Time: {appointment.time}, 
+                Status: 
+                <span style={{ color: appointment.status === 'pending' ? 'yellow' : 
+                                  appointment.status === 'confirmed' ? 'green' : 'red'}}>
+                  {appointment.status}
+                </span>
               </Typography>
-              {new Date(appointment.date + ' ' + appointment.time) > new Date() && (
+              {appointment.status === 'pending' && (
                 <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={() => handleDeleteAppointment(appointment.id)}
-                  sx={{ mt: 1 }}
+                  variant="contained"
+                  color="primary"
+                  onClick={() => handleConfirmAppointment(appointment.id)}
+                  sx={{ mt: 1, mr: 1 }}
                 >
-                  Delete
+                  Confirm
                 </Button>
               )}
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => handleDeleteAppointment(appointment.id)}
+                sx={{ mt: 1 }}
+              >
+                Delete
+              </Button>
             </CardContent>
           </Card>
         ))}
