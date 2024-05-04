@@ -85,9 +85,9 @@ function Footer() {
           {currentUser && (
             <Grid item>
               <Typography variant="body2">
-                <a href="/about">About</a>
+                <a href="/">About</a>
                 <span style={{ margin: '0 8px' }}>|</span> {/* Add separator */}
-                <a href="/contact">Contact Us</a>
+                <a href="/">Contact Us</a>
               </Typography>
             </Grid>
           )}
