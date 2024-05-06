@@ -12,6 +12,7 @@ const HealthInsurancePage = () => {
   const [newBillAmount, setNewBillAmount] = useState('');
   const [billDescription, setBillDescription] = useState('');
   const [insuranceLimit, setInsuranceLimit] = useState('');
+  const [editedInsuranceLimit, setEditedInsuranceLimit] = useState('');
   const [availableBalance, setAvailableBalance] = useState('');
   const [error, setError] = useState('');
   const [editingLimit, setEditingLimit] = useState(false);
@@ -20,15 +21,21 @@ const HealthInsurancePage = () => {
   useEffect(() => {
     if (currentUser) {
       setUserId(currentUser.uid);
-      fetchInsuranceLimit(currentUser.uid);
     }
   }, [currentUser]);
 
   useEffect(() => {
     if (userId) {
-      fetchBills();
+      const fetchData = async () => {
+        await fetchInsuranceLimit(userId);
+        await fetchBills();
+        if (insuranceLimit !== '' && bills.length > 0) {
+          calculateAvailableBalance();
+        }
+      };
+      fetchData();
     }
-  }, [userId]);
+  }, [userId, insuranceLimit, bills]);
 
   const fetchInsuranceLimit = async (userId) => {
     try {
@@ -36,22 +43,26 @@ const HealthInsurancePage = () => {
       const insuranceLimitDocSnap = await getDoc(insuranceLimitDocRef);
       if (insuranceLimitDocSnap.exists()) {
         const limitData = insuranceLimitDocSnap.data();
-        setInsuranceLimit(limitData.limit.toFixed(2));
-        calculateAvailableBalance(limitData.limit.toFixed(2));
+        if (limitData && typeof limitData.limit === 'string') {
+          const limit = parseFloat(limitData.limit);
+          if (!isNaN(limit)) {
+            setInsuranceLimit(limit.toFixed(2));
+            setEditedInsuranceLimit(limit.toFixed(2));
+          } else {
+            setError('Insurance limit data is invalid.');
+          }
+        } else {
+          setError('Insurance limit data is invalid.');
+        }
       }
     } catch (error) {
       console.error('Error fetching insurance limit: ', error);
+      setError('Error fetching insurance limit. Please try again later.');
     }
   };
 
-  const calculateAvailableBalance = (limit) => {
-    const totalBillsAmount = bills.reduce((acc, curr) => acc + parseFloat(curr.amount), 0);
-    const balance = parseFloat(limit) - totalBillsAmount;
-    setAvailableBalance(balance.toFixed(2));
-  };
-
   const handleSetInsuranceLimit = async () => {
-    if (isNaN(parseFloat(insuranceLimit)) || parseFloat(insuranceLimit) < 0) {
+    if (isNaN(parseFloat(editedInsuranceLimit)) || parseFloat(editedInsuranceLimit) < 0) {
       setError('Please enter a valid insurance limit');
       return;
     }
@@ -59,12 +70,39 @@ const HealthInsurancePage = () => {
 
     try {
       const insuranceLimitDocRef = doc(db, 'insuranceLimits', userId);
-      await setDoc(insuranceLimitDocRef, { limit: parseFloat(insuranceLimit).toFixed(2), timestamp: serverTimestamp() }, { merge: true });
+      await setDoc(insuranceLimitDocRef, { limit: parseFloat(editedInsuranceLimit).toFixed(2), timestamp: serverTimestamp() }, { merge: true });
       setEditingLimit(false);
-      calculateAvailableBalance(parseFloat(insuranceLimit).toFixed(2));
+      await fetchInsuranceLimit(userId);
+      if (bills.length > 0) {
+        calculateAvailableBalance();
+      }
     } catch (error) {
       console.error('Error updating insurance limit: ', error);
     }
+  };
+
+  const fetchBills = async () => {
+    try {
+      const q = query(
+        collection(db, 'healthInsuranceBills'),
+        where('userId', '==', userId),
+      );
+      const querySnapshot = await getDocs(q);
+      const billsData = [];
+      querySnapshot.forEach((doc) => {
+        const billData = doc.data();
+        billsData.push({ id: doc.id, ...billData });
+      });
+      setBills(billsData);
+    } catch (error) {
+      console.error('Error fetching bills: ', error);
+    }
+  };
+
+  const calculateAvailableBalance = () => {
+    const totalBillsAmount = bills.reduce((acc, curr) => acc + parseFloat(curr.amount), 0);
+    const balance = parseFloat(insuranceLimit) - totalBillsAmount;
+    setAvailableBalance(balance.toFixed(2));
   };
 
   const handleSubmitBill = async () => {
@@ -101,25 +139,6 @@ const HealthInsurancePage = () => {
     }
   };
 
-  const fetchBills = async () => {
-    try {
-      const q = query(
-        collection(db, 'healthInsuranceBills'),
-        where('userId', '==', userId),
-      );
-      const querySnapshot = await getDocs(q);
-      const billsData = [];
-      querySnapshot.forEach((doc) => {
-        const billData = doc.data();
-        billsData.push({ id: doc.id, ...billData });
-      });
-      setBills(billsData);
-      calculateAvailableBalance(insuranceLimit);
-    } catch (error) {
-      console.error('Error fetching bills: ', error);
-    }
-  };
-
   return (
     userRole === 'patient' ? (
       <Container maxWidth="md" sx={{ pt: 4 }}>
@@ -135,8 +154,8 @@ const HealthInsurancePage = () => {
                   fullWidth
                   label="Set Insurance Limit"
                   variant="outlined"
-                  value={insuranceLimit}
-                  onChange={(e) => setInsuranceLimit(e.target.value)}
+                  value={editedInsuranceLimit}
+                  onChange={(e) => setEditedInsuranceLimit(e.target.value)} // Fixed onChange handler
                   error={error !== ''}
                   helperText={error}
                   margin="normal"
