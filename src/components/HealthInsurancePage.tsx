@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, TextField, Button, Box, Card, CardContent } from '@mui/material';
-import { collection, addDoc, query, where, getDocs, doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { Container, Typography, TextField, Button, Box, Card, CardContent, IconButton } from '@mui/material';
+import { collection, addDoc, query, where, getDocs, doc, setDoc, serverTimestamp, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useUserRole } from '../context/UserRoleContext';
 import { AuthContext } from '../context/AuthContext';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const HealthInsurancePage = () => {
   const { currentUser } = React.useContext(AuthContext);
@@ -17,6 +18,7 @@ const HealthInsurancePage = () => {
   const [error, setError] = useState('');
   const [editingLimit, setEditingLimit] = useState(false);
   const { userRole } = useUserRole();
+  const [selectedBillDate, setSelectedBillDate] = useState(null);
 
   useEffect(() => {
     if (currentUser) {
@@ -47,7 +49,6 @@ const HealthInsurancePage = () => {
           const limit = parseFloat(limitData.limit);
           if (!isNaN(limit)) {
             setInsuranceLimit(limit.toFixed(2));
-            setEditedInsuranceLimit(limit.toFixed(2));
           } else {
             setError('Insurance limit data is invalid.');
           }
@@ -123,11 +124,19 @@ const HealthInsurancePage = () => {
         return;
       }
 
+      if (!billDescription.trim()) {
+        setError('Please enter bill description');
+        return;
+      }
+
+      // Check if date is selected, if not, set it to current date
+      const billDate = selectedBillDate ? selectedBillDate.toISOString() : new Date().toISOString();
+
       await addDoc(collection(db, 'healthInsuranceBills'), {
         userId,
         amount: billAmount.toFixed(2),
         description: billDescription,
-        timestamp: new Date().toISOString()
+        timestamp: billDate  // Using the selected or current date
       });
 
       setNewBillAmount('');
@@ -136,6 +145,15 @@ const HealthInsurancePage = () => {
       fetchBills();
     } catch (error) {
       console.error('Error adding bill: ', error);
+    }
+  };
+
+  const handleDeleteBill = async (billId) => {
+    try {
+      await deleteDoc(doc(db, 'healthInsuranceBills', billId));
+      fetchBills();
+    } catch (error) {
+      console.error('Error deleting bill: ', error);
     }
   };
 
@@ -155,7 +173,7 @@ const HealthInsurancePage = () => {
                   label="Set Insurance Limit"
                   variant="outlined"
                   value={editedInsuranceLimit}
-                  onChange={(e) => setEditedInsuranceLimit(e.target.value)} // Fixed onChange handler
+                  onChange={(e) => setEditedInsuranceLimit(e.target.value)}
                   error={error !== ''}
                   helperText={error}
                   margin="normal"
@@ -193,6 +211,17 @@ const HealthInsurancePage = () => {
             onChange={(e) => setBillDescription(e.target.value)}
             margin="normal"
           />
+          <TextField
+            fullWidth
+            label="Date"
+            type="date"
+            value={selectedBillDate ? selectedBillDate.toISOString().split('T')[0] : ''}
+            onChange={(e) => setSelectedBillDate(new Date(e.target.value))}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            margin="normal"
+          />
           <Box mt={1}>
             <Button variant="contained" color="primary" onClick={handleSubmitBill}>
               Submit Bill
@@ -212,9 +241,14 @@ const HealthInsurancePage = () => {
                 <CardContent>
                   <Typography variant="body1">Amount: ${bill.amount}</Typography>
                   <Typography variant="body2">Description: {bill.description}</Typography>
-                  <Typography variant="caption" color="textSecondary">
-                    {new Date(bill.timestamp).toLocaleString()}
-                  </Typography>
+                  {bill.timestamp && (
+                    <Typography variant="caption" color="textSecondary">
+                      {new Date(bill.timestamp).toLocaleString()}
+                    </Typography>
+                  )}
+                  <IconButton aria-label="delete" onClick={() => handleDeleteBill(bill.id)}>
+                    <DeleteIcon />
+                  </IconButton>
                 </CardContent>
               </Card>
             </Box>
