@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { Container, Typography, Grid, Card, CardContent, Paper } from '@mui/material';
 
 const Home = () => {
