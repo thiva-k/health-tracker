@@ -26,7 +26,7 @@ const pages = [
   { name: 'Home', path: '/' },
   { name: 'Book Appointment', path: '/appointment' },
   {name: 'Health Diary', path:'/diary'},
-  {name: 'Health Tracker', path:'/tracker'},
+  {name: 'Health Metrics', path:'/tracker'},
   { name:'Chat', path:'/chat'},
   {name: 'Reports', path:'/reports'},
   {name: 'Insurance', path:'/insurance'}

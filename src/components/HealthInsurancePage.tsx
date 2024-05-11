@@ -5,6 +5,7 @@ import { db } from '../config/firebase';
 import { useUserRole } from '../context/UserRoleContext';
 import { AuthContext } from '../context/AuthContext';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 
 const HealthInsurancePage = () => {
   const { currentUser } = React.useContext(AuthContext);
@@ -19,6 +20,7 @@ const HealthInsurancePage = () => {
   const [editingLimit, setEditingLimit] = useState(false);
   const { userRole } = useUserRole();
   const [selectedBillDate, setSelectedBillDate] = useState(null);
+  const [editingBill, setEditingBill] = useState(null);
 
   useEffect(() => {
     if (currentUser) {
@@ -157,15 +159,71 @@ const HealthInsurancePage = () => {
     }
   };
 
+  const handleEditBill = (bill) => {
+    setEditingBill(bill);
+    setNewBillAmount(bill.amount);
+    setBillDescription(bill.description);
+    setSelectedBillDate(new Date(bill.timestamp));
+  };
+
+  const handleCancelEdit = () => {
+    setEditingBill(null);
+    setNewBillAmount('');
+    setBillDescription('');
+    setSelectedBillDate(null);
+  };
+
+  const handleUpdateBill = async () => {
+    if (newBillAmount.trim() === '') {
+      setError('Please enter bill amount');
+      return;
+    }
+
+    try {
+      const billAmount = parseFloat(newBillAmount);
+      if (isNaN(billAmount) || billAmount <= 0) {
+        setError('Please enter a valid bill amount');
+        return;
+      }
+
+      if (parseFloat(insuranceLimit) < billAmount) {
+        setError('Bill amount exceeds insurance limit');
+        return;
+      }
+
+      if (!billDescription.trim()) {
+        setError('Please enter bill description');
+        return;
+      }
+
+      // Check if date is selected, if not, set it to current date
+      const billDate = selectedBillDate ? selectedBillDate.toISOString() : new Date().toISOString();
+
+      await setDoc(doc(db, 'healthInsuranceBills', editingBill.id), {
+        amount: billAmount.toFixed(2),
+        description: billDescription,
+        timestamp: billDate
+      }, { merge: true });
+
+      setEditingBill(null);
+      setNewBillAmount('');
+      setBillDescription('');
+      setSelectedBillDate(null);
+      fetchBills();
+    } catch (error) {
+      console.error('Error updating bill: ', error);
+    }
+  };
+
   return (
     userRole === 'patient' ? (
       <Container maxWidth="md" sx={{ pt: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Health Insurance
+          Health Insurance Tracker
         </Typography>
         <Box mt={2}>
           <Typography variant="h5" component="h2" gutterBottom>
-            Insurance Limit: ${insuranceLimit}
+            Insurance Limit: <> ${insuranceLimit} </>  
             {editingLimit ? (
               <>
                 <TextField
@@ -195,20 +253,20 @@ const HealthInsurancePage = () => {
           </Typography>
           <TextField
             fullWidth
+            label="Description"
+            variant="outlined"
+            value={billDescription}
+            onChange={(e) => setBillDescription(e.target.value)}
+            margin="normal"
+          />
+                    <TextField
+            fullWidth
             label="Bill Amount"
             variant="outlined"
             value={newBillAmount}
             onChange={(e) => setNewBillAmount(e.target.value)}
             error={error !== ''}
             helperText={error}
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            label="Description"
-            variant="outlined"
-            value={billDescription}
-            onChange={(e) => setBillDescription(e.target.value)}
             margin="normal"
           />
           <TextField
@@ -223,9 +281,20 @@ const HealthInsurancePage = () => {
             margin="normal"
           />
           <Box mt={1}>
-            <Button variant="contained" color="primary" onClick={handleSubmitBill}>
-              Submit Bill
-            </Button>
+            {editingBill ? (
+              <>
+                <Button variant="contained" color="primary" onClick={handleUpdateBill}>
+                  Update Bill
+                </Button>
+                <Button variant="outlined" onClick={handleCancelEdit}>
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <Button variant="contained" color="primary" onClick={handleSubmitBill}>
+                Submit Bill
+              </Button>
+            )}
           </Box>
         </Box>
         <Box mt={4}>
@@ -246,6 +315,9 @@ const HealthInsurancePage = () => {
                       {new Date(bill.timestamp).toLocaleString()}
                     </Typography>
                   )}
+                  <IconButton aria-label="edit" onClick={() => handleEditBill(bill)}>
+                    <EditIcon />
+                  </IconButton>
                   <IconButton aria-label="delete" onClick={() => handleDeleteBill(bill.id)}>
                     <DeleteIcon />
                   </IconButton>

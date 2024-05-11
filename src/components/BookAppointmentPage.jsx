@@ -219,7 +219,7 @@ const BookAppointmentPage = () => {
             <CardContent>
               <Typography variant="body1">
                 Date: {appointment.date}, Time: {appointment.time}, Doctor: {appointment.doctorName}, 
-                Status: 
+                Status: <></>
                 <span style={{ color: appointment.status === 'pending' ? 'yellow' : 
                                   appointment.status === 'confirmed' ? 'green' : 'red'}}>
                   {appointment.status}

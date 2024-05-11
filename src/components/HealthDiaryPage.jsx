@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, TextField, Button, Box, Card, CardContent } from '@mui/material';
-import { collection, addDoc, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { collection, addDoc, query, where, orderBy, getDocs, deleteDoc, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useUserRole } from '../context/UserRoleContext';
 import { AuthContext } from '../context/AuthContext';
@@ -11,6 +11,8 @@ const HealthDiaryPage = () => {
   const [entries, setEntries] = useState([]);
   const [newEntry, setNewEntry] = useState('');
   const [error, setError] = useState('');
+  const [editModeId, setEditModeId] = useState(null);
+  const [editedEntry, setEditedEntry] = useState('');
   const { userRole } = useUserRole();
 
   useEffect(() => {
@@ -68,6 +70,42 @@ const HealthDiaryPage = () => {
     }
   };
 
+  const handleEdit = (id, entry) => {
+    setEditModeId(id);
+    setEditedEntry(entry);
+  };
+
+  const handleSaveEdit = async (id) => {
+    try {
+      await updateDoc(doc(db, 'healthDiary', id), {
+        entry: editedEntry,
+        timestamp: new Date().toISOString()
+      });
+      const updatedEntries = entries.map(entry => {
+        if (entry.id === id) {
+          return { ...entry, entry: editedEntry, timestamp: new Date().toISOString() };
+        } else {
+          return entry;
+        }
+      });
+      setEntries(updatedEntries);
+      setEditModeId(null);
+      setEditedEntry('');
+    } catch (error) {
+      console.error('Error updating diary entry: ', error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteDoc(doc(db, 'healthDiary', id));
+      const updatedEntries = entries.filter(entry => entry.id !== id);
+      setEntries(updatedEntries);
+    } catch (error) {
+      console.error('Error deleting diary entry: ', error);
+    }
+  };
+
   return (
     userRole === 'patient' ? (
       <Container maxWidth="md" sx={{ pt: 4 }}>
@@ -99,10 +137,47 @@ const HealthDiaryPage = () => {
             <Box key={entry.id} mb={2}>
               <Card>
                 <CardContent>
-                  <Typography variant="body1">{entry.entry}</Typography>
-                  <Typography variant="caption" color="textSecondary">
-                    {new Date(entry.timestamp).toLocaleString()}
-                  </Typography>
+                  {editModeId === entry.id ? (
+                    <>
+                      <TextField
+                        multiline
+                        rows={4}
+                        label="Edit your diary entry"
+                        variant="outlined"
+                        fullWidth
+                        value={editedEntry}
+                        onChange={(e) => setEditedEntry(e.target.value)}
+                        margin="normal"
+                      />
+                      <Box mt={2}>
+                        <Button variant="contained" color="primary" onClick={() => handleSaveEdit(entry.id)}>
+                          Save
+                        </Button>
+                        <Box ml={1} component="span">
+                          <Button variant="contained" onClick={() => setEditModeId(null)}>
+                            Cancel
+                          </Button>
+                        </Box>
+                      </Box>
+                    </>
+                  ) : (
+                    <>
+                      <Typography variant="body1">{entry.entry}</Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        {new Date(entry.timestamp).toLocaleString()}
+                      </Typography>
+                      <Box mt={2}>
+                        <Button variant="contained" color="primary" onClick={() => handleEdit(entry.id, entry.entry)}>
+                          Edit
+                        </Button>
+                        <Box ml={1} component="span">
+                          <Button variant="contained" color="secondary" onClick={() => handleDelete(entry.id)}>
+                            Delete
+                          </Button>
+                        </Box>
+                      </Box>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </Box>

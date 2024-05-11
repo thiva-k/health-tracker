@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, TextField, Button, Paper, Card, CardContent, Box } from '@mui/material';
-import { collection, query, where, getDocs, addDoc, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { AuthContext } from '../context/AuthContext';
 import { useUserRole } from '../context/UserRoleContext';
@@ -13,21 +13,20 @@ const HealthMetricTrackerPage = () => {
   const [bloodPressure, setBloodPressure] = useState('');
   const [waterIntake, setWaterIntake] = useState('');
   const [metricHistory, setMetricHistory] = useState([]);
-  const [loading, setLoading] = useState(true); // Add loading state
+  const [loading, setLoading] = useState(true);
   const { currentUser } = React.useContext(AuthContext);
   const { userRole } = useUserRole();
 
-  // Ensure currentUser exists before accessing its properties
   const userId = currentUser ? currentUser.uid : null;
 
   const fetchMetricHistory = async () => {
     try {
-      if (!userId) return; // Don't fetch if userId is null
+      if (!userId) return;
 
       const q = query(
         collection(db, 'health_metrics'),
         where('userId', '==', userId),
-        orderBy('date', 'asc') // Order by date in descending order
+        orderBy('date', 'asc')
       );
       const querySnapshot = await getDocs(q);
       const metricHistoryData = [];
@@ -41,14 +40,12 @@ const HealthMetricTrackerPage = () => {
     }
   };
 
-  // Fetch metric history only if userId is not null
   useEffect(() => {
     if (userId) {
       fetchMetricHistory();
     }
   }, [userId]);
 
-  // Function to add a new health metric
   const addHealthMetric = async () => {
     try {
       if (!userId) return;
@@ -60,22 +57,28 @@ const HealthMetricTrackerPage = () => {
         sugarLevel,
         bloodPressure,
         waterIntake,
-        // Add other details as needed
       };
 
       await addDoc(collection(db, 'health_metrics'), metricData);
 
-      // Clear form fields after adding metric
       setSelectedDate('');
       setWeight('');
       setSugarLevel('');
       setBloodPressure('');
       setWaterIntake('');
       
-      // Refetch metric history to update UI
       fetchMetricHistory();
     } catch (error) {
       console.error('Error adding health metric: ', error);
+    }
+  };
+
+  const deleteHealthMetric = async (id) => {
+    try {
+      await deleteDoc(doc(db, 'health_metrics', id));
+      fetchMetricHistory();
+    } catch (error) {
+      console.error('Error deleting health metric: ', error);
     }
   };
 
@@ -88,7 +91,6 @@ const HealthMetricTrackerPage = () => {
       <Typography variant="h4" component="h1" gutterBottom>
         Health Metric Tracker
       </Typography>
-      {/* Form to add new health metric */}
       <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
         <TextField
           fullWidth
@@ -100,7 +102,7 @@ const HealthMetricTrackerPage = () => {
             shrink: true,
           }}
           sx={{ mb: 2 }}
-          inputProps={{ min: new Date().toISOString().split('T')[0] }} // Allow only dates after current date
+          inputProps={{ min: new Date().toISOString().split('T')[0] }}
         />
         <TextField
           fullWidth
@@ -143,17 +145,20 @@ const HealthMetricTrackerPage = () => {
           Add Metric
         </Button>
       </Paper>
-      {/* Display metric history */}
       {metricHistory.map((metric) => (
         <Card key={metric.id} sx={{ boxShadow: 3, mb: 2 }}>
           <CardContent>
             <Typography variant="body1">
               Date: {metric.date}, Weight: {metric.weight} kg, Sugar Level: {metric.sugarLevel} mg/dL, Blood Pressure: {metric.bloodPressure} mmHg, Water Intake: {metric.waterIntake} ml
             </Typography>
+            <Box sx={{ mt: 2 }}>
+              <Button variant="contained" color="secondary" onClick={() => deleteHealthMetric(metric.id)}>
+                Delete
+              </Button>
+            </Box>
           </CardContent>
         </Card>
       ))}
-      {/* Display charts */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <Paper elevation={3}>
           <Typography variant="h5" gutterBottom align="center">
@@ -216,7 +221,9 @@ const HealthMetricTrackerPage = () => {
           </ResponsiveContainer>
         </Paper>
       </Box>
+      <br/>
     </Container>
+    
   );
 };
 
