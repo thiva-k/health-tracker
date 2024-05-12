@@ -225,7 +225,16 @@ const BookAppointmentPage = () => {
                   {appointment.status}
                 </span>
               </Typography>
-              {new Date(appointment.date + ' ' + appointment.time) > new Date() && (
+              {new Date(appointment.date + ' ' + appointment.time) > new Date() ? (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => handleDeleteAppointment(appointment.id)}
+                  sx={{ mt: 1 }}
+                >
+                  Cancel
+                </Button>
+              ):(
                 <Button
                   variant="outlined"
                   color="error"
@@ -234,7 +243,8 @@ const BookAppointmentPage = () => {
                 >
                   Delete
                 </Button>
-              )}
+              )
+            }
             </CardContent>
           </Card>
         ))}
