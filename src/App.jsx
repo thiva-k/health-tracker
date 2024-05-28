@@ -23,6 +23,7 @@ import PatientsReportViewPage from './components/PatientsReportViewPage';
 import DoctorAppointmentPage from './components/DoctorAppointmentPage';
 import HealthInsurancePage from './components/HealthInsurancePage';
 import './App.css'; // Import CSS file
+import Chatbot from './components/Chatbot';
 
 function App() {
   return (
@@ -56,6 +57,7 @@ function App() {
             <Footer />
           </div>
         </Router>
+        <Chatbot />
       </UserRoleProvider>
     </AuthContextProvider>
   );

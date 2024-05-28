@@ -30,16 +30,21 @@ const HealthInsurancePage = () => {
 
   useEffect(() => {
     if (userId) {
-      const fetchData = async () => {
-        await fetchInsuranceLimit(userId);
-        await fetchBills();
-        if (insuranceLimit !== '' && bills.length > 0) {
-          calculateAvailableBalance();
-        }
-      };
-      fetchData();
+      fetchInsuranceLimit(userId);
     }
-  }, [userId, insuranceLimit, bills]);
+  }, [userId]);
+
+  useEffect(() => {
+    if (userId) {
+      fetchBills();
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    if (insuranceLimit !== '' && bills.length > 0) {
+      calculateAvailableBalance();
+    }
+  }, [insuranceLimit, bills]);
 
   const fetchInsuranceLimit = async (userId) => {
     try {
