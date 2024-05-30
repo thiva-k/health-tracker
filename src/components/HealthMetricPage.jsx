@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, TextField, Button, Paper, Card, CardContent, Box } from '@mui/material';
+import {
+  Container, Typography, TextField, Button, Paper, Card, CardContent, Box,
+  Collapse, IconButton
+} from '@mui/material';
 import { collection, query, where, getDocs, addDoc, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { AuthContext } from '../context/AuthContext';
 import { useUserRole } from '../context/UserRoleContext';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
 const HealthMetricTrackerPage = () => {
   const [selectedDate, setSelectedDate] = useState('');
@@ -14,6 +19,7 @@ const HealthMetricTrackerPage = () => {
   const [waterIntake, setWaterIntake] = useState('');
   const [metricHistory, setMetricHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showMetricHistory, setShowMetricHistory] = useState(false);
   const { currentUser } = React.useContext(AuthContext);
   const { userRole } = useUserRole();
 
@@ -66,7 +72,7 @@ const HealthMetricTrackerPage = () => {
       setSugarLevel('');
       setBloodPressure('');
       setWaterIntake('');
-      
+
       fetchMetricHistory();
     } catch (error) {
       console.error('Error adding health metric: ', error);
@@ -83,7 +89,7 @@ const HealthMetricTrackerPage = () => {
   };
 
   if (loading || !currentUser || userRole !== 'patient') {
-    return null ;
+    return null;
   }
 
   return (
@@ -145,20 +151,34 @@ const HealthMetricTrackerPage = () => {
           Add Metric
         </Button>
       </Paper>
-      {metricHistory.map((metric) => (
-        <Card key={metric.id} sx={{ boxShadow: 3, mb: 2 }}>
-          <CardContent>
-            <Typography variant="body1">
-              Date: {metric.date}, Weight: {metric.weight} kg, Sugar Level: {metric.sugarLevel} mg/dL, Blood Pressure: {metric.bloodPressure} mmHg, Water Intake: {metric.waterIntake} ml
-            </Typography>
-            <Box sx={{ mt: 2 }}>
-              <Button variant="contained" color="secondary" onClick={() => deleteHealthMetric(metric.id)}>
-                Delete
-              </Button>
-            </Box>
-          </CardContent>
-        </Card>
-      ))}
+
+      <Box sx={{ mb: 2 }}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setShowMetricHistory(!showMetricHistory)}
+          endIcon={showMetricHistory ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+        >
+          {showMetricHistory ? 'Hide Metric History' : 'View Metric History'}
+        </Button>
+        <Collapse in={showMetricHistory}>
+          {metricHistory.map((metric) => (
+            <Card key={metric.id} sx={{ boxShadow: 3, mt: 2 }}>
+              <CardContent>
+                <Typography variant="body1">
+                  Date: {metric.date}, Weight: {metric.weight} kg, Sugar Level: {metric.sugarLevel} mg/dL, Blood Pressure: {metric.bloodPressure} mmHg, Water Intake: {metric.waterIntake} ml
+                </Typography>
+                <Box sx={{ mt: 2 }}>
+                  <Button variant="contained" color="secondary" onClick={() => deleteHealthMetric(metric.id)}>
+                    Delete
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          ))}
+        </Collapse>
+      </Box>
+
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <Paper elevation={3}>
           <Typography variant="h5" gutterBottom align="center">
@@ -221,9 +241,8 @@ const HealthMetricTrackerPage = () => {
           </ResponsiveContainer>
         </Paper>
       </Box>
-      <br/>
+      <br />
     </Container>
-    
   );
 };
 

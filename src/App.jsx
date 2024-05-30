@@ -22,6 +22,7 @@ import PatientsReportListPage from './components/PatientsReportListPage';
 import PatientsReportViewPage from './components/PatientsReportViewPage';
 import DoctorAppointmentPage from './components/DoctorAppointmentPage';
 import HealthInsurancePage from './components/HealthInsurancePage';
+import PatientsMedicationPage from './components/PatientsMedicationPage';
 import './App.css'; // Import CSS file
 import Chatbot from './components/Chatbot';
 
@@ -52,6 +53,7 @@ function App() {
                 <Route path="/patients/reports/:patientId/:section" element={<PatientsReportViewPage />} />
                 <Route path="/doctor/appointments" element={<DoctorAppointmentPage />} />
                 <Route path="/insurance" element={<HealthInsurancePage />} />
+                <Route path="/medication" element={<PatientsMedicationPage />} />
               </Routes>
             </div>
             <Footer />

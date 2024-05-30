@@ -29,7 +29,8 @@ const pages = [
   {name: 'Health Metrics', path:'/tracker'},
   { name:'Chat', path:'/chat'},
   {name: 'Reports', path:'/reports'},
-  {name: 'Insurance', path:'/insurance'}
+  {name: 'Insurance', path:'/insurance'},
+  {name: 'Medication', path:'/medication'}
 ];
 
 const doctorPages = [{ name: 'Home', path: '/' }, { name: 'Patients', path: '/patients' }, { name: 'Chat', path: '/doctor/chat' }, { name: 'Appointments', path: '/doctor/appointments' }];
