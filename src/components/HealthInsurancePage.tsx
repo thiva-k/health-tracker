@@ -228,7 +228,7 @@ const HealthInsurancePage = () => {
         </Typography>
         <Box mt={2}>
           <Typography variant="h5" component="h2" gutterBottom>
-            Insurance Limit: <> ${insuranceLimit} </>  
+            Insurance Limit: <> Rs.{insuranceLimit} </>  
             {editingLimit ? (
               <>
                 <TextField
@@ -304,7 +304,7 @@ const HealthInsurancePage = () => {
         </Box>
         <Box mt={4}>
           <Typography variant="h5" component="h2" gutterBottom>
-            Available Balance: ${availableBalance}
+            Available Balance: Rs.{availableBalance}
           </Typography>
           <Typography variant="h6" component="h3" gutterBottom>
             Bill History
@@ -313,7 +313,7 @@ const HealthInsurancePage = () => {
             <Box key={bill.id} mb={2}>
               <Card>
                 <CardContent>
-                  <Typography variant="body1">Amount: ${bill.amount}</Typography>
+                  <Typography variant="body1">Amount: Rs.{bill.amount}</Typography>
                   <Typography variant="body2">Description: {bill.description}</Typography>
                   {bill.timestamp && (
                     <Typography variant="caption" color="textSecondary">

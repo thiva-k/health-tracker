@@ -25,12 +25,12 @@ import { useUserRole } from '../context/UserRoleContext';
 const pages = [
   { name: 'Home', path: '/' },
   { name: 'Book Appointment', path: '/appointment' },
-  {name: 'Health Diary', path:'/diary'},
-  {name: 'Health Metrics', path:'/tracker'},
+  {name: 'Metrics', path:'/tracker'},
+  {name: 'Medication', path:'/medication'},
   { name:'Chat', path:'/chat'},
   {name: 'Reports', path:'/reports'},
   {name: 'Insurance', path:'/insurance'},
-  {name: 'Medication', path:'/medication'}
+  {name: 'Daily Diary', path:'/diary'},
 ];
 
 const doctorPages = [{ name: 'Home', path: '/' }, { name: 'Patients', path: '/patients' }, { name: 'Chat', path: '/doctor/chat' }, { name: 'Appointments', path: '/doctor/appointments' }];

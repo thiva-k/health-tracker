@@ -15,7 +15,8 @@ const HealthMetricTrackerPage = () => {
   const [selectedDate, setSelectedDate] = useState('');
   const [weight, setWeight] = useState('');
   const [sugarLevel, setSugarLevel] = useState('');
-  const [bloodPressure, setBloodPressure] = useState('');
+  const [systolicBP, setSystolicBP] = useState('');
+  const [diastolicBP, setDiastolicBP] = useState('');
   const [waterIntake, setWaterIntake] = useState('');
   const [metricHistory, setMetricHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +62,8 @@ const HealthMetricTrackerPage = () => {
         date: selectedDate,
         weight,
         sugarLevel,
-        bloodPressure,
+        systolicBP,
+        diastolicBP,
         waterIntake,
       };
 
@@ -70,7 +72,8 @@ const HealthMetricTrackerPage = () => {
       setSelectedDate('');
       setWeight('');
       setSugarLevel('');
-      setBloodPressure('');
+      setSystolicBP('');
+      setDiastolicBP('');
       setWaterIntake('');
 
       fetchMetricHistory();
@@ -108,7 +111,6 @@ const HealthMetricTrackerPage = () => {
             shrink: true,
           }}
           sx={{ mb: 2 }}
-          inputProps={{ min: new Date().toISOString().split('T')[0] }}
         />
         <TextField
           fullWidth
@@ -128,10 +130,18 @@ const HealthMetricTrackerPage = () => {
         />
         <TextField
           fullWidth
-          label="Blood Pressure (in mmHg)"
-          type="text"
-          value={bloodPressure}
-          onChange={(e) => setBloodPressure(e.target.value)}
+          label="Systolic Blood Pressure (mmHg)"
+          type="number"
+          value={systolicBP}
+          onChange={(e) => setSystolicBP(e.target.value)}
+          sx={{ mb: 2 }}
+        />
+        <TextField
+          fullWidth
+          label="Diastolic Blood Pressure (mmHg)"
+          type="number"
+          value={diastolicBP}
+          onChange={(e) => setDiastolicBP(e.target.value)}
           sx={{ mb: 2 }}
         />
         <TextField
@@ -182,27 +192,12 @@ const HealthMetricTrackerPage = () => {
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <Paper elevation={3}>
           <Typography variant="h5" gutterBottom align="center">
-            Weight Over Time
-          </Typography>
-          <ResponsiveContainer width="95%" height={300}>
-            <LineChart data={metricHistory}>
-              <XAxis dataKey="date" />
-              <YAxis />
-              <CartesianGrid strokeDasharray="3 3" />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="weight" stroke="#8884d8" />
-            </LineChart>
-          </ResponsiveContainer>
-        </Paper>
-        <Paper elevation={3}>
-          <Typography variant="h5" gutterBottom align="center">
             Sugar Level Over Time
           </Typography>
           <ResponsiveContainer width="95%" height={300}>
             <LineChart data={metricHistory}>
               <XAxis dataKey="date" />
-              <YAxis />
+              <YAxis domain={[50,200]} />
               <CartesianGrid strokeDasharray="3 3" />
               <Tooltip />
               <Legend />
@@ -221,7 +216,23 @@ const HealthMetricTrackerPage = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="bloodPressure" stroke="#ffc658" />
+              <Line type="monotone" dataKey="systolicBP" stroke="#8884d8" name="Systolic BP" />
+              <Line type="monotone" dataKey="diastolicBP" stroke="#82ca9d" name="Diastolic BP" />
+            </LineChart>
+          </ResponsiveContainer>
+        </Paper>
+        <Paper elevation={3}>
+          <Typography variant="h5" gutterBottom align="center">
+            Weight Over Time
+          </Typography>
+          <ResponsiveContainer width="95%" height={300}>
+            <LineChart data={metricHistory}>
+              <XAxis dataKey="date" />
+              <YAxis />
+              <CartesianGrid strokeDasharray="3 3" />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="weight" stroke="#8884d8" />
             </LineChart>
           </ResponsiveContainer>
         </Paper>

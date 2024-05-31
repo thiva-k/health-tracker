@@ -9,10 +9,10 @@ const HealthDiaryPage = () => {
   const { currentUser } = React.useContext(AuthContext);
   const [userId, setUserId] = useState('');
   const [entries, setEntries] = useState([]);
-  const [newEntry, setNewEntry] = useState('');
+  const [newEntry, setNewEntry] = useState({ mood: '', waterIntake: '', meals: '', exercise: '', symptoms: '', notes: '' });
   const [error, setError] = useState('');
   const [editModeId, setEditModeId] = useState(null);
-  const [editedEntry, setEditedEntry] = useState('');
+  const [editedEntry, setEditedEntry] = useState({});
   const { userRole } = useUserRole();
 
   useEffect(() => {
@@ -45,52 +45,47 @@ const HealthDiaryPage = () => {
     }
   }, [userId]);
 
+  const handleChange = (e) => {
+    setNewEntry({ ...newEntry, [e.target.name]: e.target.value });
+  };
+
   const handleSubmit = async () => {
-    if (newEntry.trim() === '') {
-      setError('Please enter a diary entry');
+    const { mood, waterIntake, meals, exercise, symptoms, notes } = newEntry;
+    if (!mood || !waterIntake || !meals || !exercise || !symptoms || !notes) {
+      setError('Please fill in all fields');
       return;
     }
 
     try {
-      // Add diary entry to Firebase
       const docRef = await addDoc(collection(db, 'healthDiary'), {
         userId,
-        entry: newEntry,
+        ...newEntry,
         timestamp: new Date().toISOString()
       });
 
-      // Update state with the new entry
-      setEntries([...entries, { id: docRef.id, entry: newEntry, timestamp: new Date().toISOString() }]);
-
-      // Clear input field and error message
-      setNewEntry('');
+      setEntries([...entries, { id: docRef.id, ...newEntry, timestamp: new Date().toISOString() }]);
+      setNewEntry({ mood: '', waterIntake: '', meals: '', exercise: '', symptoms: '', notes: '' });
       setError('');
     } catch (error) {
       console.error('Error adding diary entry: ', error);
     }
   };
 
-  const handleEdit = (id, entry) => {
-    setEditModeId(id);
+  const handleEdit = (entry) => {
+    setEditModeId(entry.id);
     setEditedEntry(entry);
   };
 
   const handleSaveEdit = async (id) => {
     try {
       await updateDoc(doc(db, 'healthDiary', id), {
-        entry: editedEntry,
+        ...editedEntry,
         timestamp: new Date().toISOString()
       });
-      const updatedEntries = entries.map(entry => {
-        if (entry.id === id) {
-          return { ...entry, entry: editedEntry, timestamp: new Date().toISOString() };
-        } else {
-          return entry;
-        }
-      });
+      const updatedEntries = entries.map(entry => (entry.id === id ? { ...entry, ...editedEntry, timestamp: new Date().toISOString() } : entry));
       setEntries(updatedEntries);
       setEditModeId(null);
-      setEditedEntry('');
+      setEditedEntry({});
     } catch (error) {
       console.error('Error updating diary entry: ', error);
     }
@@ -109,26 +104,77 @@ const HealthDiaryPage = () => {
   return (
     userRole === 'patient' ? (
       <Container maxWidth="md" sx={{ pt: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Health Diary
+        <Typography variant="h4" component="h1" >
+          Daily Health Diary
         </Typography>
-        <TextField
-          multiline
-          rows={4}
-          label="Write your diary entry"
-          variant="outlined"
-          fullWidth
-          value={newEntry}
-          onChange={(e) => setNewEntry(e.target.value)}
-          error={error !== ''}
-          helperText={error}
-          margin="normal"
-        />
-        <Box mt={2}>
-          <Button variant="contained" color="primary" onClick={handleSubmit}>
-            Submit
-          </Button>
+        <Box component="form" noValidate autoComplete="off">
+          <TextField
+            label="Mood"
+            name="mood"
+            variant="outlined"
+            fullWidth
+            value={newEntry.mood}
+            onChange={handleChange}
+            margin="normal"
+          />
+          <TextField
+            label="Water Intake (e.g., 2L)"
+            name="waterIntake"
+            variant="outlined"
+            fullWidth
+            value={newEntry.waterIntake}
+            onChange={handleChange}
+            margin="normal"
+          />
+          <TextField
+            label="Meals"
+            name="meals"
+            variant="outlined"
+            fullWidth
+            value={newEntry.meals}
+            onChange={handleChange}
+            margin="normal"
+          />
+          <TextField
+            label="Exercise"
+            name="exercise"
+            variant="outlined"
+            fullWidth
+            value={newEntry.exercise}
+            onChange={handleChange}
+            margin="normal"
+          />
+          <TextField
+            label="Symptoms"
+            name="symptoms"
+            variant="outlined"
+            fullWidth
+            value={newEntry.symptoms}
+            onChange={handleChange}
+            margin="normal"
+          />
+          <TextField
+            label="Notes"
+            name="notes"
+            variant="outlined"
+            fullWidth
+            multiline
+            rows={4}
+            value={newEntry.notes}
+            onChange={handleChange}
+            margin="normal"
+          />
+          <Box mt={2}>
+            <Button variant="contained" color="primary" onClick={handleSubmit}>
+              Submit
+            </Button>
+          </Box>
         </Box>
+        {error && (
+          <Box mt={2}>
+            <Typography color="error">{error}</Typography>
+          </Box>
+        )}
         <Box mt={4}>
           <Typography variant="h5" component="h2" gutterBottom>
             Previous Entries
@@ -140,13 +186,59 @@ const HealthDiaryPage = () => {
                   {editModeId === entry.id ? (
                     <>
                       <TextField
-                        multiline
-                        rows={4}
-                        label="Edit your diary entry"
+                        label="Mood"
+                        name="mood"
                         variant="outlined"
                         fullWidth
-                        value={editedEntry}
-                        onChange={(e) => setEditedEntry(e.target.value)}
+                        value={editedEntry.mood}
+                        onChange={(e) => setEditedEntry({ ...editedEntry, mood: e.target.value })}
+                        margin="normal"
+                      />
+                      <TextField
+                        label="Water Intake"
+                        name="waterIntake"
+                        variant="outlined"
+                        fullWidth
+                        value={editedEntry.waterIntake}
+                        onChange={(e) => setEditedEntry({ ...editedEntry, waterIntake: e.target.value })}
+                        margin="normal"
+                      />
+                      <TextField
+                        label="Meals"
+                        name="meals"
+                        variant="outlined"
+                        fullWidth
+                        value={editedEntry.meals}
+                        onChange={(e) => setEditedEntry({ ...editedEntry, meals: e.target.value })}
+                        margin="normal"
+                      />
+                      <TextField
+                        label="Exercise"
+                        name="exercise"
+                        variant="outlined"
+                        fullWidth
+                        value={editedEntry.exercise}
+                        onChange={(e) => setEditedEntry({ ...editedEntry, exercise: e.target.value })}
+                        margin="normal"
+                      />
+                      <TextField
+                        label="Symptoms"
+                        name="symptoms"
+                        variant="outlined"
+                        fullWidth
+                        value={editedEntry.symptoms}
+                        onChange={(e) => setEditedEntry({ ...editedEntry, symptoms: e.target.value })}
+                        margin="normal"
+                      />
+                      <TextField
+                        label="Notes"
+                        name="notes"
+                        variant="outlined"
+                        fullWidth
+                        multiline
+                        rows={4}
+                        value={editedEntry.notes}
+                        onChange={(e) => setEditedEntry({ ...editedEntry, notes: e.target.value })}
                         margin="normal"
                       />
                       <Box mt={2}>
@@ -162,12 +254,17 @@ const HealthDiaryPage = () => {
                     </>
                   ) : (
                     <>
-                      <Typography variant="body1">{entry.entry}</Typography>
+                      <Typography variant="body1"><strong>Mood:</strong> {entry.mood}</Typography>
+                      <Typography variant="body1"><strong>Water Intake:</strong> {entry.waterIntake}</Typography>
+                      <Typography variant="body1"><strong>Meals:</strong> {entry.meals}</Typography>
+                      <Typography variant="body1"><strong>Exercise:</strong> {entry.exercise}</Typography>
+                      <Typography variant="body1"><strong>Symptoms:</strong> {entry.symptoms}</Typography>
+                      <Typography variant="body1"><strong>Notes:</strong> {entry.notes}</Typography>
                       <Typography variant="caption" color="textSecondary">
                         {new Date(entry.timestamp).toLocaleString()}
                       </Typography>
                       <Box mt={2}>
-                        <Button variant="contained" color="primary" onClick={() => handleEdit(entry.id, entry.entry)}>
+                        <Button variant="contained" color="primary" onClick={() => handleEdit(entry)}>
                           Edit
                         </Button>
                         <Box ml={1} component="span">

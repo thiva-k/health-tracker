@@ -126,7 +126,6 @@ const ReportViewPage = () => {
             shrink: true,
           }}
           sx={{ marginBottom: 2 }}
-          inputProps={{ min: new Date().toISOString().split('T')[0] }} // Allow only dates after current date
         />
         <TextField
           label="New Report"
