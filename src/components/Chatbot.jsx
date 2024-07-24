@@ -4,7 +4,7 @@ import ChatIcon from '@mui/icons-material/Chat';
 import CloseIcon from '@mui/icons-material/Close';
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 
-const apiKey = "AIzaSyD7kPlDYpwJapKnw6MBcBvPw7Ke-roBXOk";
+const apiKey = "AIzaSyDwwb0KXcuSlviiafGlfcL9CxKYds8Pntw";
 const genAI = new GoogleGenerativeAI(apiKey);
 
 const model = genAI.getGenerativeModel({
