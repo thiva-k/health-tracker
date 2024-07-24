@@ -8,7 +8,7 @@ import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyB6TSaHAwsYESzB9LidOZf095H-XQI_SjY",
+  apiKey: "AIzaSyDwwb0KXcuSlviiafGlfcL9CxKYds8Pntw",
   authDomain: "health-tracker-9757e.firebaseapp.com",
   projectId: "health-tracker-9757e",
   storageBucket: "health-tracker-9757e.appspot.com",
